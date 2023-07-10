@@ -1,6 +1,6 @@
 {
     "name": "api-refs",
-    "version": "1.0.0-alpha.3",
+    "version": "1.0.0-alpha.4",
     "type": "module",
     "description": "这是一个能够显著提高前端接口管理效率的工具。基于 apifox 的 JSONSchema 规范, 生成前端项目使用的接口调用文件.",
     "keywords": [
@@ -16,6 +16,14 @@
         "dist/*",
         "bin/*"
     ],
+    "exports": {
+        ".": {
+            "default": "./dist/index.mjs",
+            "require": "./dist/index.cjs",
+            "import": "./dist/index.mjs",
+            "types": "./dist/typings/index.d.ts"
+        }
+    },
     "scripts": {
         "clean": "rimraf dist && rimraf typings",
         "build": "unbuild && yarn build:schema",
@@ -23,7 +31,7 @@
         "format": "prettier -w **.ts **.md **.json",
         "preview": "unbuild && node ./dist/index.mjs",
         "ref": "yarn unlink && yarn link",
-        "api-refs": "api-ref"
+        "api-refs": "api-refs"
     },
     "license": "MIT",
     "packageManager": "yarn@1.22.19",
