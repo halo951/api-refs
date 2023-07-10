@@ -1,15 +1,35 @@
 {
     "name": "api-refs",
-    "version": "1.0.0-alpha.2",
-    "description": "通过生成命令, 快捷的将接口文档转化为前端代码",
+    "version": "1.0.0-alpha.3",
+    "type": "module",
+    "description": "这是一个能够显著提高前端接口管理效率的工具。基于 apifox 的 JSONSchema 规范, 生成前端项目使用的接口调用文件.",
     "keywords": [
         "apifox",
         "apifox-generator"
     ],
     "bin": {
-        "api-ref": "./bin/cli.mjs"
+        "api-refs": "bin/cli.js",
+        "gen-api": "bin/cli"
+    },
+    "files": [
+        "src/*",
+        "dist/*",
+        "bin/*"
+    ],
+    "scripts": {
+        "clean": "rimraf dist && rimraf typings",
+        "build": "unbuild && yarn build:schema",
+        "build:schema": "typescript-json-schema ./src/intf/IConfig.ts IConfig -o api-refs.schema.json --noExtraProps",
+        "format": "prettier -w **.ts **.md **.json",
+        "preview": "unbuild && node ./dist/index.mjs",
+        "ref": "yarn unlink && yarn link",
+        "api-refs": "api-ref"
     },
     "license": "MIT",
+    "packageManager": "yarn@1.22.19",
+    "engines": {
+        "node": ">= 16"
+    },
     "sideEffects": false,
     "author": {
         "name": "halo951",
@@ -21,38 +41,6 @@
     },
     "bugs": {
         "url": "https://github.com/halo951/api-refs/issues"
-    },
-    "packageManager": "yarn@1.22.19",
-    "engines": {
-        "node": ">= 16"
-    },
-    "publishConfig": {
-        "access": "public"
-    },
-    "type": "module",
-    "files": [
-        "src/*",
-        "dist/*",
-        "bin/*"
-    ],
-    "main": "./dist/index.cjs",
-    "module": "./dist/index.mjs",
-    "types": "./dist/typings/index.d.ts",
-    "exports": {
-        ".": {
-            "default": "./dist/index.mjs",
-            "require": "./dist/index.cjs",
-            "import": "./dist/index.mjs",
-            "types": "./dist/typings/index.d.ts"
-        }
-    },
-    "scripts": {
-        "clean": "rimraf dist && rimraf typings",
-        "build": "unbuild && yarn build:schema",
-        "build:schema": "typescript-json-schema ./src/intf/IConfig.ts IConfig -o api-refs.schema.json --noExtraProps",
-        "format": "prettier -w **.ts **.md **.json",
-        "preview": "unbuild && node ./dist/index.mjs",
-        "ref": "yarn unlink && yarn link"
     },
     "dependencies": {
         "@typescript-eslint/eslint-plugin": "^5.61.0",
