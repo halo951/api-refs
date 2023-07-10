@@ -1,0 +1,94 @@
+{
+    "name": "api-refs",
+    "version": "0.0.2-dev.4",
+    "description": "通过生成命令, 快捷的将接口文档转化为前端代码",
+    "keywords": [
+        "apifox",
+        "apifox-generator"
+    ],
+    "bin": {
+        "api-ref": "./bin/cli"
+    },
+    "license": "MIT",
+    "sideEffects": false,
+    "author": {
+        "name": "halo951",
+        "url": "https://github.com/halo951"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/halo951/api-refs.git"
+    },
+    "bugs": {
+        "url": "https://github.com/halo951/api-refs/issues"
+    },
+    "packageManager": "yarn@1.22.19",
+    "engines": {
+        "node": ">= 16"
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "type": "module",
+    "files": [
+        "src/*",
+        "dist/*",
+        "bin/*"
+    ],
+    "main": "./dist/index.cjs",
+    "module": "./dist/index.mjs",
+    "types": "./dist/typings/index.d.ts",
+    "exports": {
+        ".": {
+            "default": "./dist/index.mjs",
+            "require": "./dist/index.cjs",
+            "import": "./dist/index.mjs",
+            "types": "./dist/typings/index.d.ts"
+        }
+    },
+    "scripts": {
+        "clean": "rimraf dist && rimraf typings",
+        "build": "unbuild && yarn build:schema",
+        "build:schema": "typescript-json-schema ./src/intf/IConfig.ts IConfig -o api-refs.schema.json --noExtraProps",
+        "format": "prettier -w **.ts **.md **.json",
+        "preview": "unbuild && node ./dist/index.mjs",
+        "ref": "yarn unlink && yarn link"
+    },
+    "dependencies": {
+        "@typescript-eslint/eslint-plugin": "^5.61.0",
+        "@typescript-eslint/parser": "^5.61.0",
+        "ajv": "8.12.0",
+        "array-grouping": "1.0.8",
+        "axios": "1.4.0",
+        "boxen": "7.1.0",
+        "chalk": "5.3.0",
+        "change-case": "^4.1.2",
+        "commander": "11.0.0",
+        "enquirer-esm": "2.3.6-ext.1",
+        "eslint": "^8.44.0",
+        "fs-extra": "11.1.1",
+        "get-value": "3.0.1",
+        "json-schema-to-typescript": "13.0.2",
+        "klona": "^2.0.6",
+        "prettier": "2.8.8",
+        "set-value": "4.1.0",
+        "single-line-log": "1.1.2",
+        "typescript": "^5.1.6"
+    },
+    "devDependencies": {
+        "@types/eslint": "^8.44.0",
+        "@types/fs-extra": "11.0.1",
+        "@types/get-value": "3.0.3",
+        "@types/gradient-string": "1.1.2",
+        "@types/json-schema": "7.0.12",
+        "@types/node": "18.15.11",
+        "@types/prettier": "2.7.3",
+        "@types/set-value": "4.0.1",
+        "@types/single-line-log": "1.1.0",
+        "rimraf": "3.0.2",
+        "rollup-plugin-typescript2": "^0.35.0",
+        "tslib": "2.5.2",
+        "typescript-json-schema": "0.58.1",
+        "unbuild": "^1.2.1"
+    }
+}

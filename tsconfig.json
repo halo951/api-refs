@@ -1,0 +1,40 @@
+{
+    "ts-node": {
+        "esm": true,
+        "emit": true,
+    },
+    "compilerOptions": {
+        /** libs */
+        "importHelpers": true,
+        "types": [
+            "node"
+        ],
+        "lib": [
+            "ESNext"
+        ],
+        /** module parse */
+        "target": "ES2020",
+        "module": "ESNext",
+        "esModuleInterop": true,
+        "moduleResolution": "Node",
+        "resolveJsonModule": true,
+        "allowSyntheticDefaultImports": true,
+        "experimentalDecorators": true,
+        /** output config */
+        "noEmit": false,
+        "outDir": "dist",
+        "declaration": true,
+        "declarationDir": "dist/typings/",
+        /** lints */
+        "strict": false,
+        "strictNullChecks": false,
+        "strictPropertyInitialization": false,
+        "noImplicitAny": false,
+        "noImplicitThis": false,
+        "noUnusedLocals": false,
+        "noUnusedParameters": false,
+    },
+    "include": [
+        "src/**/*.ts"
+    ]
+}
