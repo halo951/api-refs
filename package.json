@@ -1,13 +1,13 @@
 {
     "name": "api-refs",
-    "version": "1.0.0-alpha.1",
+    "version": "1.0.0-alpha.2",
     "description": "通过生成命令, 快捷的将接口文档转化为前端代码",
     "keywords": [
         "apifox",
         "apifox-generator"
     ],
     "bin": {
-        "api-ref": "./bin/cli"
+        "api-ref": "./bin/cli.mjs"
     },
     "license": "MIT",
     "sideEffects": false,
