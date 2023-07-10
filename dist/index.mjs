@@ -1,11 +1,11 @@
 // @ts-nocheck
 /**
-* api-refs@0.0.2-dev.4
+* api-refs@1.0.0-alpha.4
 *
 * Copyright (c) 2023 halo951 <https://github.com/halo951>
 * Released under MIT License
 *
-* @build Mon Jul 10 2023 16:25:39 GMT+0800 (中国标准时间)
+* @build Mon Jul 10 2023 17:32:04 GMT+0800 (中国标准时间)
 * @author halo951(https://github.com/halo951)
 * @license MIT
 */
@@ -32,44 +32,22 @@ import parser from '@typescript-eslint/parser';
 import { rules } from '@typescript-eslint/eslint-plugin';
 
 const name = "api-refs";
-const version = "0.0.2-dev.4";
-const description$1 = "通过生成命令, 快捷的将接口文档转化为前端代码";
+const version = "1.0.0-alpha.4";
+const type$1 = "module";
+const description$1 = "这是一个能够显著提高前端接口管理效率的工具。基于 apifox 的 JSONSchema 规范, 生成前端项目使用的接口调用文件.";
 const keywords = [
 	"apifox",
 	"apifox-generator"
 ];
 const bin = {
-	"api-ref": "./bin/cli"
+	"api-refs": "bin/cli.js",
+	ga: "bin/cli.js"
 };
-const license = "MIT";
-const sideEffects = false;
-const author = {
-	name: "halo951",
-	url: "https://github.com/halo951"
-};
-const repository = {
-	type: "git",
-	url: "https://github.com/halo951/api-refs.git"
-};
-const bugs = {
-	url: "https://github.com/halo951/api-refs/issues"
-};
-const packageManager = "yarn@1.22.19";
-const engines = {
-	node: ">= 16"
-};
-const publishConfig = {
-	access: "public"
-};
-const type$1 = "module";
 const files = [
 	"src/*",
 	"dist/*",
 	"bin/*"
 ];
-const main = "./dist/index.cjs";
-const module = "./dist/index.mjs";
-const types = "./dist/typings/index.d.ts";
 const exports = {
 	".": {
 		"default": "./dist/index.mjs",
@@ -84,7 +62,25 @@ const scripts = {
 	"build:schema": "typescript-json-schema ./src/intf/IConfig.ts IConfig -o api-refs.schema.json --noExtraProps",
 	format: "prettier -w **.ts **.md **.json",
 	preview: "unbuild && node ./dist/index.mjs",
-	ref: "yarn unlink && yarn link"
+	ref: "yarn unlink && yarn link",
+	"api-refs": "api-refs"
+};
+const license = "MIT";
+const packageManager = "yarn@1.22.19";
+const engines = {
+	node: ">= 16"
+};
+const sideEffects = false;
+const author = {
+	name: "halo951",
+	url: "https://github.com/halo951"
+};
+const repository = {
+	type: "git",
+	url: "https://github.com/halo951/api-refs.git"
+};
+const bugs = {
+	url: "https://github.com/halo951/api-refs/issues"
 };
 const dependencies = {
 	"@typescript-eslint/eslint-plugin": "^5.61.0",
@@ -126,24 +122,20 @@ const devDependencies = {
 const pkg = {
 	name: name,
 	version: version,
+	type: type$1,
 	description: description$1,
 	keywords: keywords,
 	bin: bin,
+	files: files,
+	exports: exports,
+	scripts: scripts,
 	license: license,
+	packageManager: packageManager,
+	engines: engines,
 	sideEffects: sideEffects,
 	author: author,
 	repository: repository,
 	bugs: bugs,
-	packageManager: packageManager,
-	engines: engines,
-	publishConfig: publishConfig,
-	type: type$1,
-	files: files,
-	main: main,
-	module: module,
-	types: types,
-	exports: exports,
-	scripts: scripts,
 	dependencies: dependencies,
 	devDependencies: devDependencies
 };

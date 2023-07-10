@@ -9,7 +9,7 @@
     ],
     "bin": {
         "api-refs": "bin/cli.js",
-        "gen-api": "bin/cli"
+        "ga": "bin/cli.js"
     },
     "files": [
         "src/*",
