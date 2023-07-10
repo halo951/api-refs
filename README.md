@@ -16,7 +16,7 @@
     -   module support: `cjs`、 `esm`
     -   更完善地参数类型支持: `params`, `data`, `header`, `cookie`, `auth`
 
-## Support (逐步更新支持)
+## 文档管理工具支持 (逐步更新)
 
 -   apifox [✔]
 -   apipost []

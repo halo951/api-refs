@@ -1,6 +1,6 @@
 {
     "name": "api-refs",
-    "version": "0.0.2-dev.4",
+    "version": "1.0.0-alpha.1",
     "description": "通过生成命令, 快捷的将接口文档转化为前端代码",
     "keywords": [
         "apifox",
