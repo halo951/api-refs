@@ -5,7 +5,7 @@
 * Copyright (c) 2023 halo951 <https://github.com/halo951>
 * Released under MIT License
 *
-* @build Tue Jul 11 2023 14:41:25 GMT+0800 (中国标准时间)
+* @build Tue Jul 11 2023 14:45:54 GMT+0800 (中国标准时间)
 * @author halo951(https://github.com/halo951)
 * @license MIT
 */
@@ -1901,6 +1901,7 @@ const createFunctionParamsIntf = async (api, functionName) => {
       code.push(headers);
       refs.push({ key: "headers", intf });
     } catch (error) {
+      console.error(error);
       capture.push("header");
     }
   }

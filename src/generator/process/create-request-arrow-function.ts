@@ -76,7 +76,7 @@ const createFunctionParamsIntf = async (
     }
     if (api.requestObject.header) {
         try {
-            appendComment(api.requestObject.body.data, [
+            appendComment(api.requestObject.header, [
                 `request header | ${api.comment.name}`,
                 '',
                 ['function', functionName]
@@ -86,6 +86,7 @@ const createFunctionParamsIntf = async (
             code.push(headers)
             refs.push({ key: 'headers', intf })
         } catch (error) {
+            console.error(error)
             capture.push('header')
         }
     }
