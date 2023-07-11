@@ -28,6 +28,11 @@ export const generate = async (apis: Array<IApi>, config: IConfig): Promise<void
     point.step('开始生成')
     // @ 根据 outFile 对接口进行分组
     const groupApi: Array<Array<IApi>> = GroupBy(apis, (a, b) => a.outFile.path === b.outFile.path)
+        // sort
+        .sort((a, b): number => {
+            const getMap = (group: Array<IApi>) => (group.length ? group[0].outFile?.map ?? '-' : '_')
+            return getMap(a).localeCompare(getMap(b))
+        })
     // @ 解析导入语句
     const { requestUtil, importStatement } = parseImportStatement(config.output?.applyImportStatements)
     // @ 获取默认的contentType
@@ -74,12 +79,12 @@ export const generate = async (apis: Array<IApi>, config: IConfig): Promise<void
             } catch (error) {
                 let message: string
                 if (error instanceof Array) {
-                    message = `JSONSchema 转换 ts interface 失败, failure prop: ${error.join(', ')}`
+                    message = `JSONSchema 转换 interface code 失败, failure prop: ${error.join(', ')}`
                 } else {
                     message = error?.message ?? error
                 }
                 point.error(
-                    `生成 [${api.comment.folder}/${api.comment.name}](${api.url}) 出错. \n    exception: ${message}`
+                    `生成 [${api.comment.folder}/${api.comment.name}](${api.url}) 出错. \n    error: ${message}`
                 )
             }
         }
