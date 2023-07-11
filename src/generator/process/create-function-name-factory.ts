@@ -3,6 +3,7 @@ import type { IApi } from '../../intf/IApi'
 import { camelCase } from 'change-case'
 
 import { RESEVED_KEYWORD_MAP } from '../data/reseved-keyword'
+import { Method } from 'axios'
 
 /** 裁剪获取url段落中最后一段 (非Restful api path部分)  */
 const urlLastParagraph = (url: string): string | null => {
@@ -105,6 +106,17 @@ const checkApisHasSingleWordOrDuplicatedName = (apis: Array<IApi>): boolean => {
     return false
 }
 
+/** 清理路径中的 restful 参数 */
+const clearRestfulPathParams = (str: string, method: Method): string => {
+    const matched: Array<string> | null = str.match(/[\$]{0,1}\{.+?\}/g)
+    // TIPS: 针对单个参数的 Restful api, 且非 get/post 方式的情况下, 用方法名替代原参数进行填充
+    if (matched?.length === 1 && !['get', 'post'].includes(method.toLowerCase())) {
+        return str.replace(/[\$]{0,1}\{.+?\}/g, `_${method.toLowerCase()}`)
+    } else {
+        return str.replace(/[\$]{0,1}\{.+?\}/g, '')
+    }
+}
+
 /** 创建接口方法名的工厂方法 */
 export const createFunctionNameFactory = (apis: Array<IApi>) => {
     // @ 定义用于记录重复命名的 方法名, 参数接口名, 响应接口名
@@ -126,7 +138,7 @@ export const createFunctionNameFactory = (apis: Array<IApi>) => {
                 // 1. (预处理) 当尾段url不重复时, 生成更简短的命名
                 (str: string) => (!repeatedUrlTail ? urlLastParagraph(str) ?? str : str),
                 // 2. (预处理) 移除路径中的 Restful Api 参数
-                (str: string) => str.replace(/[\$]{0,1}\{.+?\}/g, ''),
+                (str: string) => clearRestfulPathParams(str, method),
                 // 3. (预处理) 裁剪超长路径名
                 (str: string) => splitLongNameByPath(str, 3),
                 // 4. (预处理) 裁剪接口命名词汇超过3个单词的命名

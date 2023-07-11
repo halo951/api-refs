@@ -5,7 +5,7 @@
 * Copyright (c) 2023 halo951 <https://github.com/halo951>
 * Released under MIT License
 *
-* @build Tue Jul 11 2023 14:12:47 GMT+0800 (中国标准时间)
+* @build Tue Jul 11 2023 14:25:59 GMT+0800 (中国标准时间)
 * @author halo951(https://github.com/halo951)
 * @license MIT
 */
@@ -1687,6 +1687,14 @@ const checkApisHasSingleWordOrDuplicatedName = (apis) => {
   }
   return false;
 };
+const clearRestfulPathParams = (str, method) => {
+  const matched = str.match(/[\$]{0,1}\{.+?\}/g);
+  if (matched && matched.length === 1) {
+    return str.replace(/[\$]{0,1}\{.+?\}/g, `_${method}`);
+  } else {
+    return str.replace(/[\$]{0,1}\{.+?\}/g, "");
+  }
+};
 const createFunctionNameFactory = (apis) => {
   const duplicate = {};
   const repeatedUrlTail = checkApisHasSingleWordOrDuplicatedName(apis);
@@ -1702,7 +1710,7 @@ const createFunctionNameFactory = (apis) => {
         // 1. (预处理) 当尾段url不重复时, 生成更简短的命名
         (str) => !repeatedUrlTail ? urlLastParagraph(str) ?? str : str,
         // 2. (预处理) 移除路径中的 Restful Api 参数
-        (str) => str.replace(/[\$]{0,1}\{.+?\}/g, ""),
+        (str) => clearRestfulPathParams(str, method),
         // 3. (预处理) 裁剪超长路径名
         (str) => splitLongNameByPath(str, 3),
         // 4. (预处理) 裁剪接口命名词汇超过3个单词的命名
@@ -1826,7 +1834,6 @@ const createFunctionParamsIntf = async (api, functionName) => {
       code.push(params);
       refs.push({ key: "params", intf });
     } catch (error) {
-      console.error(error);
       capture.push("params");
     }
   }
