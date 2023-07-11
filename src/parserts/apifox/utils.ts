@@ -37,9 +37,19 @@ export const parametersToJSONSchema7 = (params: Array<Omit<IParameters, 'id' | '
 
 /** 映射 JSONSchemaRef 引用 */
 export const mappingJSONSchemaRef = (schema: JSONSchema7, refs: Array<ISchema>): JSONSchema7 => {
+    if (!schema) return {}
     if (!schema.definitions) schema.definitions = {}
+    // 映射整个对象都是引用的
+    if (schema.$ref) {
+        const refId: string = schema.$ref.split('/').pop()
+        const { jsonSchema } = refs.find((ref) => ref.id.toString() === refId)
+        Object.assign(schema, jsonSchema)
+        delete schema.$ref
+    }
+
     for (const { id, jsonSchema } of refs) {
         schema.definitions[id] = jsonSchema
     }
+
     return schema
 }

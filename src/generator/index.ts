@@ -59,17 +59,25 @@ export const generate = async (apis: Array<IApi>, config: IConfig): Promise<void
         content.push('\n\n')
         // 将接口信息转化为代码, 并写入到文件
         for (const api of group) {
-            // @ 生成接口方法名
-            const functionName: string = factory.generate(api)
-            // > 生成接口文件代码
-            const code: string = await createRequestArrowFunction({
-                requestUtil,
-                functionName,
-                defaultContentType,
-                api,
-                config
-            })
-            content.push(code)
+            try {
+                // @ 生成接口方法名
+                const functionName: string = factory.generate(api)
+                // > 生成接口文件代码
+                const code: string = await createRequestArrowFunction({
+                    requestUtil,
+                    functionName,
+                    defaultContentType,
+                    api,
+                    config
+                })
+                content.push(code)
+            } catch (error) {
+                point.error(
+                    `生成 '${api.outFile.name}(${api.outFile.map}${
+                        config.output?.language === 'ts' ? '.ts' : '.js'
+                    })' ${api.comment.folder}/${api.comment.name} <${api.url}> 接口出错`
+                )
+            }
         }
         // 将生成结果写入到缓存, 然后后面统一导出
         cache.push([path, content.join('\n\n')])
