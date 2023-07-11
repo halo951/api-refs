@@ -47,7 +47,8 @@ export const mappingJSONSchemaRef = (schema: JSONSchema7, refs: Array<ISchema>):
         delete schema.$ref
     }
 
-    for (const { id, jsonSchema } of refs) {
+    for (const { id, name, jsonSchema } of refs) {
+        jsonSchema.title = name
         schema.definitions[id] = jsonSchema
     }
 
