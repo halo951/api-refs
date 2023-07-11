@@ -5,7 +5,7 @@
 * Copyright (c) 2023 halo951 <https://github.com/halo951>
 * Released under MIT License
 *
-* @build Tue Jul 11 2023 13:04:07 GMT+0800 (中国标准时间)
+* @build Tue Jul 11 2023 13:45:07 GMT+0800 (中国标准时间)
 * @author halo951(https://github.com/halo951)
 * @license MIT
 */
@@ -915,7 +915,8 @@ const mappingJSONSchemaRef = (schema, refs) => {
     Object.assign(schema, jsonSchema);
     delete schema.$ref;
   }
-  for (const { id, jsonSchema } of refs) {
+  for (const { id, name, jsonSchema } of refs) {
+    jsonSchema.title = name;
     schema.definitions[id] = jsonSchema;
   }
   return schema;
@@ -1764,13 +1765,13 @@ const prettierConfig = {
 const JSONSchemaGenerateOptions = {
   additionalProperties: false,
   bannerComment: "",
-  declareExternallyReferenced: false,
+  declareExternallyReferenced: true,
   enableConstEnums: false,
   maxItems: -1,
   strictIndexSignatures: true,
-  style: prettierConfig,
   unreachableDefinitions: false,
-  unknownAny: false
+  unknownAny: false,
+  style: prettierConfig
 };
 const deepFix = (jsonSchema, transform) => {
   const deep = (schema) => {
@@ -1843,21 +1844,83 @@ const appendComment = (schema, comment) => {
 const createFunctionParamsIntf = async (api, functionName) => {
   const code = [];
   const refs = [];
-  if (api.requestObject.params) ;
-  if (api.requestObject.body) ;
-  if (api.requestObject.header) ;
-  if (api.requestObject.cookie) ;
+  const capture = [];
+  if (api.requestObject.params) {
+    try {
+      appendComment(api.requestObject.params, [
+        `request params | ${api.comment.name}`,
+        "",
+        ["function", functionName],
+        api.pathParams ? ["description", "\u5B58\u5728 url path params"] : void 0
+      ]);
+      const intf = createIntfName(functionName, "params");
+      const params = await jsonSchemaToTsInterface(api.requestObject.params, intf);
+      code.push(params);
+      refs.push({ key: "params", intf });
+    } catch (error) {
+      capture.push("params");
+    }
+  }
+  if (api.requestObject.body) {
+    try {
+      appendComment(api.requestObject.body.data, [
+        `request body | ${api.comment.name}`,
+        "",
+        ["function", functionName],
+        ["ContentType", api.requestObject.body.type]
+      ]);
+      const intf = createIntfName(functionName, "data");
+      const data = await jsonSchemaToTsInterface(api.requestObject.body.data, intf);
+      code.push(data);
+      refs.push({ key: "data", intf });
+    } catch (error) {
+      capture.push("body");
+    }
+  }
+  if (api.requestObject.header) {
+    try {
+      appendComment(api.requestObject.body.data, [
+        `request header | ${api.comment.name}`,
+        "",
+        ["function", functionName]
+      ]);
+      const intf = createIntfName(functionName, "header");
+      const headers = await jsonSchemaToTsInterface(api.requestObject.header, intf);
+      code.push(headers);
+      refs.push({ key: "headers", intf });
+    } catch (error) {
+      capture.push("header");
+    }
+  }
+  if (api.requestObject.cookie) {
+    try {
+      appendComment(api.requestObject.cookie, [
+        `request cookie | ${api.comment.name}`,
+        "",
+        ["function", functionName]
+      ]);
+      const intf = createIntfName(functionName, "cookie");
+      const cookie = await jsonSchemaToTsInterface(api.requestObject.cookie, intf);
+      code.push(cookie);
+      refs.push({ key: "cookie", intf });
+    } catch (error) {
+      capture.push("cookie");
+    }
+  }
   if (api.requestObject.auth) {
     code.push(`export type IAuth = { username: string; password: string }`);
     refs.push({ key: "auth", intf: "IAuth" });
+  }
+  if (capture.length) {
+    throw capture;
   }
   return { code, refs };
 };
 const createFunctionResponseInterface = async (api, functionName, config) => {
   const code = [];
   const refs = [];
+  const capture = [];
   const ro = api.responseObject ?? [];
-  fs__default.writeFileSync("./ro.json", JSON.stringify(ro, null, 4), { encoding: "utf-8" });
   for (let n = 0, len = ro.length; n < len; n++) {
     const { statusCode, statusName, type, data } = ro[n];
     if (config.output.responseOnlySuccess && Number(statusCode) >= 400) {
@@ -1866,17 +1929,24 @@ const createFunctionResponseInterface = async (api, functionName, config) => {
     if (type !== "json") {
       continue;
     }
-    appendComment(data, [
-      `response | ${api.comment.name}`,
-      "",
-      ["function", functionName],
-      ["status", `(${statusCode}) ${statusName}`],
-      ["responseType", type]
-    ]);
-    const intf = createIntfName(functionName, "response", n);
-    const response = await jsonSchemaToTsInterface(data, intf);
-    code.push(response);
-    refs.push(intf);
+    try {
+      appendComment(data, [
+        `response | ${api.comment.name}`,
+        "",
+        ["function", functionName],
+        ["status", `(${statusCode}) ${statusName}`],
+        ["responseType", type]
+      ]);
+      const intf = createIntfName(functionName, "response", n);
+      const response = await jsonSchemaToTsInterface(data, intf);
+      code.push(response);
+      refs.push(intf);
+    } catch (error) {
+      capture.push(n);
+    }
+  }
+  if (capture.length) {
+    throw capture;
   }
   for (const { type } of ro) {
     switch (type) {
@@ -1997,7 +2067,7 @@ const createFunctionCode = (api, functionName, requestUtil, paramsRefs, response
 };
 const createRequestArrowFunction = async (opt) => {
   const { functionName, requestUtil, api, config, defaultContentType } = opt;
-  const { code: paramsIntfCode, refs: paramsRefs } = await createFunctionParamsIntf(api);
+  const { code: paramsIntfCode, refs: paramsRefs } = await createFunctionParamsIntf(api, functionName);
   const { code: responseIntfCode, refs: responseRef } = await createFunctionResponseInterface(api, functionName, config);
   const functionCode = createFunctionCode(api, functionName, requestUtil, paramsRefs, responseRef, defaultContentType);
   return [...paramsIntfCode, ...responseIntfCode, functionCode].filter((line) => line && line !== "").join("\n");
@@ -2168,7 +2238,14 @@ const generate = async (apis, config) => {
         });
         content.push(code);
       } catch (error) {
-        point.error(`\u751F\u6210 '${api.outFile.name}(${api.outFile.map}${config.output?.language === "ts" ? ".ts" : ".js"})' ${api.comment.folder}/${api.comment.name} <${api.url}> \u63A5\u53E3\u51FA\u9519`);
+        let message;
+        if (error instanceof Array) {
+          message = `JSONSchema \u8F6C\u6362 ts interface \u5931\u8D25, failure prop: ${error.join(", ")}`;
+        } else {
+          message = error?.message ?? error;
+        }
+        point.error(`\u751F\u6210 [${api.comment.folder}/${api.comment.name}](${api.url}) \u51FA\u9519. 
+    exception: ${message}`);
       }
     }
     cache.push([path, content.join("\n\n")]);

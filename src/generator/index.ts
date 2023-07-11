@@ -72,10 +72,14 @@ export const generate = async (apis: Array<IApi>, config: IConfig): Promise<void
                 })
                 content.push(code)
             } catch (error) {
+                let message: string
+                if (error instanceof Array) {
+                    message = `JSONSchema 转换 ts interface 失败, failure prop: ${error.join(', ')}`
+                } else {
+                    message = error?.message ?? error
+                }
                 point.error(
-                    `生成 '${api.outFile.name}(${api.outFile.map}${
-                        config.output?.language === 'ts' ? '.ts' : '.js'
-                    })' ${api.comment.folder}/${api.comment.name} <${api.url}> 接口出错`
+                    `生成 [${api.comment.folder}/${api.comment.name}](${api.url}) 出错. \n    exception: ${message}`
                 )
             }
         }

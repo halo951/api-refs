@@ -40,55 +40,76 @@ const createFunctionParamsIntf = async (
     const code: Array<string> = []
     // 名称, 类型引用
     const refs: Array<{ key: string; intf: string }> = []
+    // 记录生成失败的props
+    const capture: Array<string> = []
     if (api.requestObject.params) {
-        appendComment(api.requestObject.params, [
-            `request params | ${api.comment.name}`,
-            '',
-            ['function', functionName],
-            api.pathParams ? ['description', '存在 url path params'] : undefined
-        ])
-        const intf: string = createIntfName(functionName, 'params')
-        const params: string = await jsonSchemaToTsInterface(api.requestObject.params, intf)
-        code.push(params)
-        refs.push({ key: 'params', intf })
+        try {
+            appendComment(api.requestObject.params, [
+                `request params | ${api.comment.name}`,
+                '',
+                ['function', functionName],
+                api.pathParams ? ['description', '存在 url path params'] : undefined
+            ])
+            const intf: string = createIntfName(functionName, 'params')
+            const params: string = await jsonSchemaToTsInterface(api.requestObject.params, intf)
+            code.push(params)
+            refs.push({ key: 'params', intf })
+        } catch (error) {
+            capture.push('params')
+        }
     }
     if (api.requestObject.body) {
-        appendComment(api.requestObject.body.data, [
-            `request body | ${api.comment.name}`,
-            '',
-            ['function', functionName],
-            ['ContentType', api.requestObject.body.type]
-        ])
-        const intf: string = createIntfName(functionName, 'data')
-        const data: string = await jsonSchemaToTsInterface(api.requestObject.body.data, intf)
-        code.push(data)
-        refs.push({ key: 'data', intf })
+        try {
+            appendComment(api.requestObject.body.data, [
+                `request body | ${api.comment.name}`,
+                '',
+                ['function', functionName],
+                ['ContentType', api.requestObject.body.type]
+            ])
+            const intf: string = createIntfName(functionName, 'data')
+            const data: string = await jsonSchemaToTsInterface(api.requestObject.body.data, intf)
+            code.push(data)
+            refs.push({ key: 'data', intf })
+        } catch (error) {
+            capture.push('body')
+        }
     }
     if (api.requestObject.header) {
-        appendComment(api.requestObject.body.data, [
-            `request header | ${api.comment.name}`,
-            '',
-            ['function', functionName]
-        ])
-        const intf: string = createIntfName(functionName, 'header')
-        const headers: string = await jsonSchemaToTsInterface(api.requestObject.header, intf)
-        code.push(headers)
-        refs.push({ key: 'headers', intf })
+        try {
+            appendComment(api.requestObject.body.data, [
+                `request header | ${api.comment.name}`,
+                '',
+                ['function', functionName]
+            ])
+            const intf: string = createIntfName(functionName, 'header')
+            const headers: string = await jsonSchemaToTsInterface(api.requestObject.header, intf)
+            code.push(headers)
+            refs.push({ key: 'headers', intf })
+        } catch (error) {
+            capture.push('header')
+        }
     }
     if (api.requestObject.cookie) {
-        appendComment(api.requestObject.cookie, [
-            `request cookie | ${api.comment.name}`,
-            '',
-            ['function', functionName]
-        ])
-        const intf: string = createIntfName(functionName, 'cookie')
-        const cookie: string = await jsonSchemaToTsInterface(api.requestObject.cookie, intf)
-        code.push(cookie)
-        refs.push({ key: 'cookie', intf })
+        try {
+            appendComment(api.requestObject.cookie, [
+                `request cookie | ${api.comment.name}`,
+                '',
+                ['function', functionName]
+            ])
+            const intf: string = createIntfName(functionName, 'cookie')
+            const cookie: string = await jsonSchemaToTsInterface(api.requestObject.cookie, intf)
+            code.push(cookie)
+            refs.push({ key: 'cookie', intf })
+        } catch (error) {
+            capture.push('cookie')
+        }
     }
     if (api.requestObject.auth) {
         code.push(`export type IAuth = { username: string; password: string }`)
         refs.push({ key: 'auth', intf: 'IAuth' })
+    }
+    if (capture.length) {
+        throw capture
     }
     return { code, refs }
 }
@@ -103,6 +124,8 @@ const createFunctionResponseInterface = async (
     const code: Array<string> = []
     // 类型引用
     const refs: Array<string> = []
+    // 记录生成失败的属性
+    const capture: Array<number> = []
     const ro = api.responseObject ?? []
     for (let n = 0, len = ro.length; n < len; n++) {
         const { statusCode, statusName, type, data } = ro[n]
@@ -112,18 +135,27 @@ const createFunctionResponseInterface = async (
         if (type !== 'json') {
             continue
         }
-        appendComment(data, [
-            `response | ${api.comment.name}`,
-            '',
-            ['function', functionName],
-            ['status', `(${statusCode}) ${statusName}`],
-            ['responseType', type]
-        ])
-        const intf: string = createIntfName(functionName, 'response', n)
-        const response = await jsonSchemaToTsInterface(data, intf)
-        code.push(response)
-        refs.push(intf)
+        try {
+            appendComment(data, [
+                `response | ${api.comment.name}`,
+                '',
+                ['function', functionName],
+                ['status', `(${statusCode}) ${statusName}`],
+                ['responseType', type]
+            ])
+            const intf: string = createIntfName(functionName, 'response', n)
+            const response = await jsonSchemaToTsInterface(data, intf)
+            code.push(response)
+            refs.push(intf)
+        } catch (error) {
+            capture.push(n)
+        }
     }
+
+    if (capture.length) {
+        throw capture
+    }
+
     for (const { type } of ro) {
         switch (type) {
             case 'binary':
@@ -286,7 +318,6 @@ export const createRequestArrowFunction = async (opt: {
     config: IConfig
 }): Promise<string> => {
     const { functionName, requestUtil, api, config, defaultContentType } = opt
-
     // @ 生成方法参数接口
     const { code: paramsIntfCode, refs: paramsRefs } = await createFunctionParamsIntf(api, functionName)
     // @ 生成方法响应接口
