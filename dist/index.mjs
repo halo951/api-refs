@@ -5,7 +5,7 @@
 * Copyright (c) 2023 halo951 <https://github.com/halo951>
 * Released under MIT License
 *
-* @build Tue Jul 11 2023 13:45:07 GMT+0800 (中国标准时间)
+* @build Tue Jul 11 2023 14:12:47 GMT+0800 (中国标准时间)
 * @author halo951(https://github.com/halo951)
 * @license MIT
 */
@@ -1743,7 +1743,7 @@ const JSONSchemaGenerateOptions = {
 };
 const deepFix = (jsonSchema, transform) => {
   const deep = (schema) => {
-    if (typeof schema === "boolean")
+    if (!schema || typeof schema === "boolean")
       return;
     transform(schema);
     switch (schema.type) {
@@ -1826,6 +1826,7 @@ const createFunctionParamsIntf = async (api, functionName) => {
       code.push(params);
       refs.push({ key: "params", intf });
     } catch (error) {
+      console.error(error);
       capture.push("params");
     }
   }
@@ -2149,13 +2150,18 @@ const createIndexFile = (groupApi, config) => {
   const importStatements = [];
   const outputStatements = ["export const apis = {"];
   for (const group of groupApi) {
-    const { name, map, project } = group[0].outFile;
+    const { name, map } = group[0].outFile;
+    const projects = group.map((api) => api.outFile?.project).reduce((set, projects2) => {
+      for (const proj of projects2 ?? [])
+        set.add(proj);
+      return set;
+    }, /* @__PURE__ */ new Set());
     importStatements.push(`import * as ${map} from './${map}'`);
     outputStatements.push(`  /**`);
     outputStatements.push(`   * <\u6587\u4EF6\u5939> ${name}`);
     outputStatements.push(`   * @total (\u63A5\u53E3\u6570) ${group.length}`);
     outputStatements.push(`   * @projects`);
-    for (const proj of project) {
+    for (const proj of Array.from(projects)) {
       outputStatements.push(`   *   - ${proj}`);
     }
     outputStatements.push(`   */`);
@@ -2178,7 +2184,10 @@ const cookieToHeaderValue = (cookies: { [key: string]: any }): string => {
 `;
 const generate = async (apis, config) => {
   point.step("\u5F00\u59CB\u751F\u6210");
-  const groupApi = GroupBy(apis, (a, b) => a.outFile.path === b.outFile.path);
+  const groupApi = GroupBy(apis, (a, b) => a.outFile.path === b.outFile.path).sort((a, b) => {
+    const getMap = (group) => group.length ? group[0].outFile?.map ?? "-" : "_";
+    return getMap(a).localeCompare(getMap(b));
+  });
   const { requestUtil, importStatement } = parseImportStatement(config.output?.applyImportStatements);
   const defaultContentType = calcDefaultContentType(apis);
   const cache = [];
@@ -2208,12 +2217,12 @@ const generate = async (apis, config) => {
       } catch (error) {
         let message;
         if (error instanceof Array) {
-          message = `JSONSchema \u8F6C\u6362 ts interface \u5931\u8D25, failure prop: ${error.join(", ")}`;
+          message = `JSONSchema \u8F6C\u6362 interface code \u5931\u8D25, failure prop: ${error.join(", ")}`;
         } else {
           message = error?.message ?? error;
         }
         point.error(`\u751F\u6210 [${api.comment.folder}/${api.comment.name}](${api.url}) \u51FA\u9519. 
-    exception: ${message}`);
+    error: ${message}`);
       }
     }
     cache.push([path, content.join("\n\n")]);

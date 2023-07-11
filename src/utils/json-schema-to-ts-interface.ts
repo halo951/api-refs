@@ -18,8 +18,8 @@ const JSONSchemaGenerateOptions: Partial<JSONSchemaToTypescriptOptions> = {
 }
 
 const deepFix = (jsonSchema: JSONSchema7, transform: (schema: JSONSchema7) => void): void => {
-    const deep = (schema: JSONSchema7 | JSONSchema7Definition) => {
-        if (typeof schema === 'boolean') return
+    const deep = (schema?: JSONSchema7 | JSONSchema7Definition) => {
+        if (!schema || typeof schema === 'boolean') return
         transform(schema)
         // deep
         switch (schema.type) {
