@@ -14,13 +14,19 @@ export const createIndexFile = (
     // 生成导入路径
     for (const group of groupApi) {
         // @ 定义输出文件目录
-        const { name, map, project } = group[0].outFile
+        const { name, map } = group[0].outFile
+        const projects = group
+            .map((api) => api.outFile?.project)
+            .reduce((set, projects) => {
+                for (const proj of projects ?? []) set.add(proj)
+                return set
+            }, new Set())
         importStatements.push(`import * as ${map} from './${map}'`)
         outputStatements.push(`  /**`)
         outputStatements.push(`   * <文件夹> ${name}`)
         outputStatements.push(`   * @total (接口数) ${group.length}`)
         outputStatements.push(`   * @projects`)
-        for (const proj of project) {
+        for (const proj of Array.from(projects)) {
             outputStatements.push(`   *   - ${proj}`)
         }
         outputStatements.push(`   */`)
