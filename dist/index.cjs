@@ -1,11 +1,11 @@
 // @ts-nocheck
 /**
-* api-refs@1.0.0-alpha.4
+* api-refs@1.0.0-alpha.7
 *
 * Copyright (c) 2023 halo951 <https://github.com/halo951>
 * Released under MIT License
 *
-* @build Mon Jul 10 2023 17:32:04 GMT+0800 (中国标准时间)
+* @build Tue Jul 11 2023 13:04:07 GMT+0800 (中国标准时间)
 * @author halo951(https://github.com/halo951)
 * @license MIT
 */
@@ -14,8 +14,10 @@
 const fs = require('node:fs');
 const prettier = require('prettier');
 const commander = require('commander');
+const np$1 = require('node:path');
 const set = require('set-value');
 const get = require('get-value');
+const glob = require('glob');
 const Ajv = require('ajv');
 const chalk = require('chalk');
 const lite = require('klona/lite');
@@ -35,10 +37,24 @@ const eslintPlugin = require('@typescript-eslint/eslint-plugin');
 
 function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e.default : e; }
 
+function _interopNamespaceCompat(e) {
+    if (e && typeof e === 'object' && 'default' in e) return e;
+    const n = Object.create(null);
+    if (e) {
+        for (const k in e) {
+            n[k] = e[k];
+        }
+    }
+    n.default = e;
+    return n;
+}
+
 const fs__default = /*#__PURE__*/_interopDefaultCompat(fs);
 const prettier__default = /*#__PURE__*/_interopDefaultCompat(prettier);
+const np__default$1 = /*#__PURE__*/_interopDefaultCompat(np$1);
 const set__default = /*#__PURE__*/_interopDefaultCompat(set);
 const get__default = /*#__PURE__*/_interopDefaultCompat(get);
+const glob__namespace = /*#__PURE__*/_interopNamespaceCompat(glob);
 const Ajv__default = /*#__PURE__*/_interopDefaultCompat(Ajv);
 const chalk__default = /*#__PURE__*/_interopDefaultCompat(chalk);
 const Enquirer__default = /*#__PURE__*/_interopDefaultCompat(Enquirer);
@@ -50,7 +66,7 @@ const typescript__default = /*#__PURE__*/_interopDefaultCompat(typescript);
 const parser__default = /*#__PURE__*/_interopDefaultCompat(parser);
 
 const name = "api-refs";
-const version = "1.0.0-alpha.4";
+const version = "1.0.0-alpha.7";
 const type$1 = "module";
 const description$1 = "这是一个能够显著提高前端接口管理效率的工具。基于 apifox 的 JSONSchema 规范, 生成前端项目使用的接口调用文件.";
 const keywords = [
@@ -64,7 +80,11 @@ const bin = {
 const files = [
 	"src/*",
 	"dist/*",
-	"bin/*"
+	"bin/*",
+	".prettierrc.json",
+	"build.config.ts",
+	"api-refs.schema.json",
+	"tsconfig.json"
 ];
 const exports$1 = {
 	".": {
@@ -114,6 +134,7 @@ const dependencies = {
 	eslint: "^8.44.0",
 	"fs-extra": "11.1.1",
 	"get-value": "3.0.1",
+	glob: "^10.3.3",
 	"json-schema-to-typescript": "13.0.2",
 	klona: "^2.0.6",
 	prettier: "2.8.8",
@@ -125,6 +146,7 @@ const devDependencies = {
 	"@types/eslint": "^8.44.0",
 	"@types/fs-extra": "11.0.1",
 	"@types/get-value": "3.0.3",
+	"@types/glob": "^8.1.0",
 	"@types/gradient-string": "1.1.2",
 	"@types/json-schema": "7.0.12",
 	"@types/node": "18.15.11",
@@ -883,8 +905,16 @@ const parametersToJSONSchema7 = (params) => {
   return schema;
 };
 const mappingJSONSchemaRef = (schema, refs) => {
+  if (!schema)
+    return {};
   if (!schema.definitions)
     schema.definitions = {};
+  if (schema.$ref) {
+    const refId = schema.$ref.split("/").pop();
+    const { jsonSchema } = refs.find((ref) => ref.id.toString() === refId);
+    Object.assign(schema, jsonSchema);
+    delete schema.$ref;
+  }
   for (const { id, jsonSchema } of refs) {
     schema.definitions[id] = jsonSchema;
   }
@@ -1411,6 +1441,7 @@ const inputConfigAndLoadApis = async (config) => {
       next = await inputBoolean("api-refs \u5DE5\u5177\u53D1\u73B0\u5927\u7248\u672C\u66F4\u65B0, \u65B0\u7248\u672C\u751F\u6210\u7ED3\u679C\u53EF\u80FD\u4E0E\u65E7\u7248\u672C\u4EA7\u751F\u8F83\u5927\u5DEE\u5F02, \u662F\u5426\u7EE7\u7EED\u751F\u6210?");
       if (!next)
         process.exit();
+      config.version = pkg.version;
     }
   }
   point.step("\u8BBE\u7F6E\u751F\u6210\u7B56\u7565");
@@ -1428,7 +1459,43 @@ const inputConfigAndLoadApis = async (config) => {
     output.appendIndex = await inputBoolean("\u9009\u62E9\u662F\u5426\u6DFB\u52A0 index file \u516C\u5171\u5BFC\u51FA", true);
   }
   if (isUndefined(output.applyImportStatements)) {
-    output.applyImportStatements = await inputText("\u8BBE\u7F6E\u5BFC\u5165\u8BED\u53E5 (\u5982\u679C\u4E0D\u9700\u8981\u4FEE\u6539\u53EF\u5FFD\u7565)", "import request from '@/utils/request'");
+    const rootPath = process.cwd();
+    const query = [`./**/request.[tj]s`, `./**/axios.[tj]s`, `./**/http.[tj]s`];
+    let res = [];
+    let searchPath = output.dir;
+    let n = 0;
+    while (searchPath !== np__default$1.dirname(searchPath) && n < 10) {
+      res = glob__namespace.sync(query, { cwd: searchPath });
+      if (res.length > 0) {
+        break;
+      }
+      searchPath = np__default$1.dirname(searchPath);
+      n++;
+    }
+    const projectPkg = fs__default.readFileSync(np__default$1.join(rootPath, "package.json"), { encoding: "utf-8" });
+    let statement = "import axios from 'axios'";
+    if (res.length > 0) {
+      const requestPath = res[0];
+      const requestFile = fs__default.readFileSync(np__default$1.join(searchPath, requestPath), { encoding: "utf-8" });
+      let importPath = np__default$1.relative(output.dir, np__default$1.join(searchPath, requestPath)).replace(/\\/g, "/");
+      importPath = importPath.replace(np__default$1.extname(importPath), "");
+      if (/export default/.test(requestFile)) {
+        statement = `import request from '${importPath}'`;
+      } else {
+        const firstExport = requestFile.match(/export const (.+?)[ =]/);
+        if (firstExport) {
+          statement = `import { ${firstExport[1]} } from '${importPath}'`;
+        } else {
+          statement = `import request from '${importPath}'`;
+        }
+      }
+    } else {
+      if (!projectPkg.dependencies?.axios && !projectPkg.devDependencies?.axios) {
+        point.warn("\u672A\u626B\u63CF\u5230\u5408\u9002\u7684\u8BF7\u6C42\u5DE5\u5177, \u5C06\u5BFC\u5165\u9ED8\u8BA4\u8BED\u53E5");
+        statement = "import request from '@/utils/request'";
+      }
+    }
+    output.applyImportStatements = await inputText("\u8BBE\u7F6E\u5BFC\u5165\u8BED\u53E5 (\u53EF\u8DF3\u8FC7)", statement);
   }
   config.output = output;
   point.step("\u52A0\u8F7D\u6570\u636E\u6E90");
@@ -1776,52 +1843,10 @@ const appendComment = (schema, comment) => {
 const createFunctionParamsIntf = async (api, functionName) => {
   const code = [];
   const refs = [];
-  if (api.requestObject.params) {
-    appendComment(api.requestObject.params, [
-      `request params | ${api.comment.name}`,
-      "",
-      ["function", functionName],
-      api.pathParams ? ["description", "\u5B58\u5728 url path params"] : void 0
-    ]);
-    const intf = createIntfName(functionName, "params");
-    const params = await jsonSchemaToTsInterface(api.requestObject.params, intf);
-    code.push(params);
-    refs.push({ key: "params", intf });
-  }
-  if (api.requestObject.body) {
-    appendComment(api.requestObject.body.data, [
-      `request body | ${api.comment.name}`,
-      "",
-      ["function", functionName],
-      ["ContentType", api.requestObject.body.type]
-    ]);
-    const intf = createIntfName(functionName, "data");
-    const data = await jsonSchemaToTsInterface(api.requestObject.body.data, intf);
-    code.push(data);
-    refs.push({ key: "data", intf });
-  }
-  if (api.requestObject.header) {
-    appendComment(api.requestObject.body.data, [
-      `request header | ${api.comment.name}`,
-      "",
-      ["function", functionName]
-    ]);
-    const intf = createIntfName(functionName, "header");
-    const headers = await jsonSchemaToTsInterface(api.requestObject.header, intf);
-    code.push(headers);
-    refs.push({ key: "headers", intf });
-  }
-  if (api.requestObject.cookie) {
-    appendComment(api.requestObject.cookie, [
-      `request cookie | ${api.comment.name}`,
-      "",
-      ["function", functionName]
-    ]);
-    const intf = createIntfName(functionName, "cookie");
-    const cookie = await jsonSchemaToTsInterface(api.requestObject.cookie, intf);
-    code.push(cookie);
-    refs.push({ key: "cookie", intf });
-  }
+  if (api.requestObject.params) ;
+  if (api.requestObject.body) ;
+  if (api.requestObject.header) ;
+  if (api.requestObject.cookie) ;
   if (api.requestObject.auth) {
     code.push(`export type IAuth = { username: string; password: string }`);
     refs.push({ key: "auth", intf: "IAuth" });
@@ -1832,6 +1857,7 @@ const createFunctionResponseInterface = async (api, functionName, config) => {
   const code = [];
   const refs = [];
   const ro = api.responseObject ?? [];
+  fs__default.writeFileSync("./ro.json", JSON.stringify(ro, null, 4), { encoding: "utf-8" });
   for (let n = 0, len = ro.length; n < len; n++) {
     const { statusCode, statusName, type, data } = ro[n];
     if (config.output.responseOnlySuccess && Number(statusCode) >= 400) {
@@ -1971,7 +1997,7 @@ const createFunctionCode = (api, functionName, requestUtil, paramsRefs, response
 };
 const createRequestArrowFunction = async (opt) => {
   const { functionName, requestUtil, api, config, defaultContentType } = opt;
-  const { code: paramsIntfCode, refs: paramsRefs } = await createFunctionParamsIntf(api, functionName);
+  const { code: paramsIntfCode, refs: paramsRefs } = await createFunctionParamsIntf(api);
   const { code: responseIntfCode, refs: responseRef } = await createFunctionResponseInterface(api, functionName, config);
   const functionCode = createFunctionCode(api, functionName, requestUtil, paramsRefs, responseRef, defaultContentType);
   return [...paramsIntfCode, ...responseIntfCode, functionCode].filter((line) => line && line !== "").join("\n");
@@ -2131,15 +2157,19 @@ const generate = async (apis, config) => {
     }
     content.push("\n\n");
     for (const api of group) {
-      const functionName = factory.generate(api);
-      const code = await createRequestArrowFunction({
-        requestUtil,
-        functionName,
-        defaultContentType,
-        api,
-        config
-      });
-      content.push(code);
+      try {
+        const functionName = factory.generate(api);
+        const code = await createRequestArrowFunction({
+          requestUtil,
+          functionName,
+          defaultContentType,
+          api,
+          config
+        });
+        content.push(code);
+      } catch (error) {
+        point.error(`\u751F\u6210 '${api.outFile.name}(${api.outFile.map}${config.output?.language === "ts" ? ".ts" : ".js"})' ${api.comment.folder}/${api.comment.name} <${api.url}> \u63A5\u53E3\u51FA\u9519`);
+      }
     }
     cache.push([path, content.join("\n\n")]);
   }

@@ -8,13 +8,13 @@ import prettierConfig from './prettier.config'
 const JSONSchemaGenerateOptions: Partial<JSONSchemaToTypescriptOptions> = {
     additionalProperties: false,
     bannerComment: '',
-    declareExternallyReferenced: false,
+    declareExternallyReferenced: true,
     enableConstEnums: false,
     maxItems: -1,
     strictIndexSignatures: true,
-    style: prettierConfig,
     unreachableDefinitions: false,
-    unknownAny: false
+    unknownAny: false,
+    style: prettierConfig
 }
 
 const deepFix = (jsonSchema: JSONSchema7, transform: (schema: JSONSchema7) => void): void => {

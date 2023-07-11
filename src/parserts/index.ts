@@ -2,9 +2,11 @@ import type { IConfig, TDatasource, TLanguage } from '../intf/IConfig'
 import type { IApi } from '../intf/IApi'
 
 import fs from 'node:fs'
+import np from 'node:path'
 import set from 'set-value'
 import get from 'get-value'
 import prettier from 'prettier'
+import * as glob from 'glob'
 import Ajv, { DefinedError } from 'ajv'
 
 import pkg from '../../package.json' assert { type: 'json' }
@@ -114,6 +116,7 @@ export const inputConfigAndLoadApis = async (config: IConfig): Promise<Array<IAp
                 'api-refs 工具发现大版本更新, 新版本生成结果可能与旧版本产生较大差异, 是否继续生成?'
             )
             if (!next) process.exit()
+            config.version = pkg.version
         }
     }
 
@@ -138,10 +141,46 @@ export const inputConfigAndLoadApis = async (config: IConfig): Promise<Array<IAp
     }
 
     if (isUndefined(output.applyImportStatements)) {
-        output.applyImportStatements = await inputText(
-            '设置导入语句 (如果不需要修改可忽略)',
-            "import request from '@/utils/request'"
-        )
+        // Tips: 尝试通过文件扫描的方式, 创建请求工具导入语句
+        const rootPath: string = process.cwd()
+        const query: Array<string> = [`./**/request.[tj]s`, `./**/axios.[tj]s`, `./**/http.[tj]s`]
+        let res: Array<string> = []
+        let searchPath: string = output.dir
+        let n: number = 0
+        // > 通过递归的方式, 逐级扫描文件夹, 找到 request 实例
+        while (searchPath !== np.dirname(searchPath) && n < 10) {
+            res = glob.sync(query, { cwd: searchPath })
+            if (res.length > 0) {
+                break
+            }
+            // > 扫描上级目录
+            searchPath = np.dirname(searchPath)
+            n++
+        }
+        const projectPkg: any = fs.readFileSync(np.join(rootPath, 'package.json'), { encoding: 'utf-8' })
+        let statement: string = "import axios from 'axios'"
+        if (res.length > 0) {
+            const requestPath: string = res[0]
+            const requestFile: string = fs.readFileSync(np.join(searchPath, requestPath), { encoding: 'utf-8' })
+            let importPath: string = np.relative(output.dir, np.join(searchPath, requestPath)).replace(/\\/g, '/')
+            importPath = importPath.replace(np.extname(importPath), '')
+            if (/export default/.test(requestFile)) {
+                statement = `import request from '${importPath}'`
+            } else {
+                const firstExport: Array<string> | null = requestFile.match(/export const (.+?)[ =]/)
+                if (firstExport) {
+                    statement = `import { ${firstExport[1]} } from '${importPath}'`
+                } else {
+                    statement = `import request from '${importPath}'`
+                }
+            }
+        } else {
+            if (!projectPkg.dependencies?.axios && !projectPkg.devDependencies?.axios) {
+                point.warn('未扫描到合适的请求工具, 将导入默认语句')
+                statement = "import request from '@/utils/request'"
+            }
+        }
+        output.applyImportStatements = await inputText('设置导入语句 (可跳过)', statement)
     }
 
     config.output = output as Required<IConfig['output']>
