@@ -5,7 +5,7 @@
 * Copyright (c) 2023 halo951 <https://github.com/halo951>
 * Released under MIT License
 *
-* @build Tue Jul 11 2023 14:25:59 GMT+0800 (中国标准时间)
+* @build Tue Jul 11 2023 14:41:25 GMT+0800 (中国标准时间)
 * @author halo951(https://github.com/halo951)
 * @license MIT
 */
@@ -1001,6 +1001,8 @@ const transformRequestObject = (detail, schemas, projectName) => {
     requestObject.header.additionalProperties = true;
   if (detail.requestBody) {
     switch (detail.requestBody.type) {
+      case "none":
+        break;
       case "multipart/form-data":
       case "application/x-www-form-urlencoded":
         requestObject.body = {
@@ -1029,7 +1031,9 @@ const transformRequestObject = (detail, schemas, projectName) => {
       default:
         requestObject.body = {
           type: detail.requestBody.type,
-          data: {}
+          data: {
+            type: "any"
+          }
         };
         break;
     }
@@ -1689,8 +1693,8 @@ const checkApisHasSingleWordOrDuplicatedName = (apis) => {
 };
 const clearRestfulPathParams = (str, method) => {
   const matched = str.match(/[\$]{0,1}\{.+?\}/g);
-  if (matched && matched.length === 1) {
-    return str.replace(/[\$]{0,1}\{.+?\}/g, `_${method}`);
+  if (matched?.length === 1 && !["get", "post"].includes(method.toLowerCase())) {
+    return str.replace(/[\$]{0,1}\{.+?\}/g, `_${method.toLowerCase()}`);
   } else {
     return str.replace(/[\$]{0,1}\{.+?\}/g, "");
   }

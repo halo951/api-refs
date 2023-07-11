@@ -152,6 +152,8 @@ const transformRequestObject = (
 
     if (detail.requestBody) {
         switch (detail.requestBody.type) {
+            case 'none':
+                break
             case 'multipart/form-data':
             case 'application/x-www-form-urlencoded':
                 requestObject.body = {
@@ -181,7 +183,9 @@ const transformRequestObject = (
             default:
                 requestObject.body = {
                     type: detail.requestBody.type,
-                    data: {}
+                    data: {
+                        type: 'any' as any
+                    }
                 }
                 break
         }
