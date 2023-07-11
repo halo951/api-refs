@@ -5,7 +5,7 @@
 * Copyright (c) 2023 halo951 <https://github.com/halo951>
 * Released under MIT License
 *
-* @build Tue Jul 11 2023 14:45:54 GMT+0800 (中国标准时间)
+* @build Tue Jul 11 2023 14:47:30 GMT+0800 (中国标准时间)
 * @author halo951(https://github.com/halo951)
 * @license MIT
 */
@@ -1859,7 +1859,7 @@ const createFunctionParamsIntf = async (api, functionName) => {
   }
   if (api.requestObject.header) {
     try {
-      appendComment(api.requestObject.body.data, [
+      appendComment(api.requestObject.header, [
         `request header | ${api.comment.name}`,
         "",
         ["function", functionName]
