@@ -16,7 +16,6 @@
 -   [ ] Feature 2
 -   [ ] Breaking changes
 
-
 ## Details
 
 > 详细描述改动内容, 如果必要, 建议增加示例代码说明.

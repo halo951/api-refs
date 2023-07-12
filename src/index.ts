@@ -24,7 +24,6 @@ let config!: IConfig
 // @ 从数据源中加载到的接口数据集合
 let apis!: Array<IApi>
 
-
 // > 监听程序退出, 并在退出时, 确认是否需要保存配置
 process.addListener('exit', (code: number): void => {
     if (code === 200 && config && configFilePath) {
