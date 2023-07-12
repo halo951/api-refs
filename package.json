@@ -1,6 +1,6 @@
 {
     "name": "api-refs",
-    "version": "1.0.0-alpha.8",
+    "version": "1.0.0-alpha.9",
     "type": "module",
     "description": "这是一个能够显著提高前端接口管理效率的工具。基于 apifox 的 JSONSchema 规范, 生成前端项目使用的接口调用文件.",
     "keywords": [
@@ -53,7 +53,6 @@
         "url": "https://github.com/halo951/api-refs/issues"
     },
     "dependencies": {
-        "glob": "10.3.3",
         "@typescript-eslint/eslint-plugin": "5.61.0",
         "@typescript-eslint/parser": "5.61.0",
         "ajv": "8.12.0",
@@ -67,6 +66,7 @@
         "eslint": "8.44.0",
         "fs-extra": "11.1.1",
         "get-value": "3.0.1",
+        "glob": "10.3.3",
         "json-schema-to-typescript": "13.0.2",
         "klona": "2.0.6",
         "prettier": "2.8.8",
