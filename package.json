@@ -24,16 +24,14 @@
         ".": {
             "default": "./dist/index.mjs",
             "require": "./dist/index.cjs",
-            "import": "./dist/index.mjs",
-            "types": "./dist/typings/index.d.ts"
+            "import": "./dist/index.mjs"
         }
     },
     "scripts": {
         "clean": "rimraf dist && rimraf typings",
         "build": "unbuild",
-        "build:schema": "typescript-json-schema ./src/intf/IConfig.ts IConfig -o api-refs.schema.json --noExtraProps",
-        "format": "prettier -w **.ts **.md **.json",
         "preview": "unbuild && node ./dist/index.mjs",
+        "format": "prettier -w **.ts **.md **.json",
         "ref": "yarn unlink && yarn link",
         "api-refs": "api-refs"
     },

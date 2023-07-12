@@ -1,198 +1,117 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
+    "description": "api-refs 工具生成器配置",
+    "type": "object",
+    "properties": {
+        "$schema": {
+            "description": "schema 协议路径",
+            "default": "node_modules/api-refs/api-refs.schema.json",
+            "type": "string"
+        },
+        "version": { "description": "api-refs 工具版本", "type": "string" },
+        "datasource": { "description": "指定接口文档数据源", "type": "string", "const": "apifox" },
+        "apifox": {
+            "description": "apifox 数据源配置 (当 datasource 值为 apifox 时, 此配置为必填选项)",
+            "$ref": "#/definitions/IApifoxDatasource"
+        },
+        "output": {
+            "description": "输出配置",
+            "type": "object",
+            "properties": {
+                "language": { "$ref": "#/definitions/TLanguage", "description": "语言模板", "default": "ts" },
+                "dir": { "description": "导出目录", "default": "./src/apis/", "type": "string" },
+                "clear": { "description": "是否清理历史文件", "default": false, "type": "boolean" },
+                "appendIndex": { "description": "是否添加 index file 公共导出", "default": true, "type": "boolean" },
+                "strict": {
+                    "description": "是否启用严格模式, 严格模式下, 不允许出现重复的接口定义",
+                    "default": false,
+                    "type": "boolean"
+                },
+                "responseOnlySuccess": {
+                    "description": "当出现多种响应结果类型时, 是否仅生成响应成功类型 (条件: code < 400)",
+                    "default": false,
+                    "type": "boolean"
+                },
+                "applyImportStatements": {
+                    "description": "请求工具导入语句 (需要满足 IRequest 接口, 即具备 axios / fetch api 特性)",
+                    "default": "import request from '@/utils/request'",
+                    "type": "string"
+                },
+                "cjs": { "description": "是否导出 commonjs 格式文件", "default": false, "type": "boolean" }
+            },
+            "additionalProperties": false
+        },
+        "showTotal": { "description": "调试: 是否打印生成结果的统计信息", "default": true, "type": "boolean" }
+    },
     "additionalProperties": false,
     "definitions": {
-        "IApifoxCatalog": {
-            "additionalProperties": false,
-            "description": "(apifox) 缓存目录集合, 用于校验接口文档变化",
-            "properties": {
-                "children": {
-                    "description": "子目录",
-                    "items": {
-                        "$ref": "#/definitions/IApifoxCatalog"
-                    },
-                    "type": "array"
-                },
-                "id": {
-                    "description": "接口文件夹 id 标识",
-                    "type": "number"
-                },
-                "name": {
-                    "description": "接口文件夹名称 (原始文件夹名称, 与apifox一致)",
-                    "type": "string"
-                }
-            },
-            "type": "object"
-        },
         "IApifoxDatasource": {
-            "additionalProperties": false,
             "description": "apifox 数据源配置",
+            "type": "object",
             "properties": {
                 "accessToken": {
                     "description": "登录态 token (关联 apifox 接口信息, 用于隐式访问 apifox api)",
                     "type": "string"
                 },
-                "catalog": {
-                    "default": [],
-                    "description": "原始接口列表数据集合, 用于校验选择的项目、接口是否发生过变化, 如果发生了变化, 那么需要提示用户更新引用.",
-                    "items": {
-                        "$ref": "#/definitions/IApifoxCatalog"
-                    },
-                    "type": "array"
-                },
                 "project": {
+                    "description": "哪些项目下的接口参与生成 (注: 允许多个)",
                     "anyOf": [
                         {
-                            "additionalProperties": false,
-                            "properties": {
-                                "id": {
-                                    "type": "number"
-                                },
-                                "name": {
-                                    "type": "string"
-                                }
-                            },
-                            "type": "object"
+                            "type": "object",
+                            "properties": { "id": { "type": "number" }, "name": { "type": "string" } },
+                            "additionalProperties": false
                         },
                         {
+                            "type": "array",
                             "items": {
-                                "additionalProperties": false,
-                                "properties": {
-                                    "id": {
-                                        "type": "number"
-                                    },
-                                    "name": {
-                                        "type": "string"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "type": "array"
+                                "type": "object",
+                                "properties": { "id": { "type": "number" }, "name": { "type": "string" } },
+                                "additionalProperties": false
+                            }
                         }
-                    ],
-                    "description": "哪些项目下的接口参与生成 (注: 允许多个)"
+                    ]
                 },
-                "removeDeprecatedApi": {
-                    "default": true,
-                    "description": "是否移除已废弃的 api",
-                    "type": "boolean"
+                "catalog": {
+                    "description": "原始接口列表数据集合, 用于校验选择的项目、接口是否发生过变化, 如果发生了变化, 那么需要提示用户更新引用.",
+                    "default": [],
+                    "type": "array",
+                    "items": { "$ref": "#/definitions/IApifoxCatalog" }
                 },
                 "usage": {
-                    "default": [],
                     "description": "指示哪些接口文件夹参与生成",
-                    "items": {
-                        "$ref": "#/definitions/IApifoxUsage"
-                    },
-                    "type": "array"
+                    "default": [],
+                    "type": "array",
+                    "items": { "$ref": "#/definitions/IApifoxUsage" }
+                },
+                "removeDeprecatedApi": { "description": "是否移除已废弃的 api", "default": true, "type": "boolean" }
+            },
+            "additionalProperties": false
+        },
+        "IApifoxCatalog": {
+            "description": "(apifox) 缓存目录集合, 用于校验接口文档变化",
+            "type": "object",
+            "properties": {
+                "id": { "description": "接口文件夹 id 标识", "type": "number" },
+                "name": { "description": "接口文件夹名称 (原始文件夹名称, 与apifox一致)", "type": "string" },
+                "children": {
+                    "description": "子目录",
+                    "type": "array",
+                    "items": { "$ref": "#/definitions/IApifoxCatalog" }
                 }
             },
-            "type": "object"
+            "additionalProperties": false
         },
         "IApifoxUsage": {
-            "additionalProperties": false,
             "description": "(apifox) 参与生成的目录配置",
+            "type": "object",
             "properties": {
-                "id": {
-                    "description": "接口文件夹 id 标识",
-                    "type": "number"
-                },
-                "map": {
-                    "description": "目录映射文件名",
-                    "type": "string"
-                },
-                "name": {
-                    "description": "接口文件夹名称 (原始文件夹名称, 与apifox一致)",
-                    "type": "string"
-                },
-                "relate": {
-                    "description": "是否关联当前文件夹下所有的子文件夹",
-                    "type": "boolean"
-                }
+                "id": { "description": "接口文件夹 id 标识", "type": "number" },
+                "name": { "description": "接口文件夹名称 (原始文件夹名称, 与apifox一致)", "type": "string" },
+                "map": { "description": "目录映射文件名", "type": "string" },
+                "relate": { "description": "是否关联当前文件夹下所有的子文件夹", "type": "boolean" }
             },
-            "type": "object"
+            "additionalProperties": false
         },
-        "TLanguage": {
-            "enum": [
-                "js",
-                "only-js",
-                "ts"
-            ],
-            "type": "string"
-        }
+        "TLanguage": { "enum": ["js", "only-js", "ts"], "type": "string" }
     },
-    "description": "api-refs 工具生成器配置",
-    "properties": {
-        "$schema": {
-            "default": "node_modules/api-refs/api-refs.schema.json",
-            "description": "schema 协议路径",
-            "type": "string"
-        },
-        "apifox": {
-            "$ref": "#/definitions/IApifoxDatasource",
-            "description": "apifox 数据源配置 (当 datasource 值为 apifox 时, 此配置为必填选项)"
-        },
-        "datasource": {
-            "const": "apifox",
-            "description": "指定接口文档数据源",
-            "type": "string"
-        },
-        "output": {
-            "additionalProperties": false,
-            "description": "输出配置",
-            "properties": {
-                "appendIndex": {
-                    "default": true,
-                    "description": "是否添加 index file 公共导出",
-                    "type": "boolean"
-                },
-                "applyImportStatements": {
-                    "default": "import request from '@/utils/request'",
-                    "description": "请求工具导入语句 (需要满足 IRequest 接口, 即具备 axios / fetch api 特性)",
-                    "type": "string"
-                },
-                "cjs": {
-                    "default": false,
-                    "description": "是否导出 commonjs 格式文件",
-                    "type": "boolean"
-                },
-                "clear": {
-                    "default": false,
-                    "description": "是否清理历史文件",
-                    "type": "boolean"
-                },
-                "dir": {
-                    "default": "./src/apis/",
-                    "description": "导出目录",
-                    "type": "string"
-                },
-                "language": {
-                    "$ref": "#/definitions/TLanguage",
-                    "default": "ts",
-                    "description": "语言模板"
-                },
-                "responseOnlySuccess": {
-                    "default": false,
-                    "description": "当出现多种响应结果类型时, 是否仅生成响应成功类型 (条件: code < 400)",
-                    "type": "boolean"
-                },
-                "strict": {
-                    "default": false,
-                    "description": "是否启用严格模式, 严格模式下, 不允许出现重复的接口定义",
-                    "type": "boolean"
-                }
-            },
-            "type": "object"
-        },
-        "showTotal": {
-            "default": true,
-            "description": "调试: 是否打印生成结果的统计信息",
-            "type": "boolean"
-        },
-        "version": {
-            "description": "api-refs 工具版本",
-            "type": "string"
-        }
-    },
-    "type": "object"
+    "$schema": "http://json-schema.org/draft-07/schema#"
 }
-
