@@ -2,7 +2,7 @@ import type { IConfig, TDatasource, TLanguage } from '../intf/IConfig'
 import type { IApi } from '../intf/IApi'
 
 import fs from 'node:fs'
-import np from 'node:path'
+import np from 'node:path/posix'
 import set from 'set-value'
 import get from 'get-value'
 import prettier from 'prettier'
@@ -143,13 +143,12 @@ export const inputConfigAndLoadApis = async (config: IConfig): Promise<Array<IAp
     if (isUndefined(output.applyImportStatements)) {
         // Tips: 尝试通过文件扫描的方式, 创建请求工具导入语句
         const rootPath: string = process.cwd()
-        const query: Array<string> = [`./**/request.[tj]s`, `./**/axios.[tj]s`, `./**/http.[tj]s`]
         let res: Array<string> = []
         let searchPath: string = output.dir
         let n: number = 0
         // > 通过递归的方式, 逐级扫描文件夹, 找到 request 实例
         while (searchPath !== np.dirname(searchPath) && n < 10) {
-            res = glob.sync(query, { cwd: searchPath })
+            res = glob.sync(`./**/[request|axios|http]\.[tj]s`, { cwd: searchPath })
             if (res.length > 0) {
                 break
             }
