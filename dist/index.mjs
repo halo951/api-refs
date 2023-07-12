@@ -5,7 +5,7 @@
 * Copyright (c) 2023 halo951 <https://github.com/halo951>
 * Released under MIT License
 *
-* @build Wed Jul 12 2023 11:55:33 GMT+0800 (中国标准时间)
+* @build Wed Jul 12 2023 11:58:35 GMT+0800 (中国标准时间)
 * @author halo951(https://github.com/halo951)
 * @license MIT
 */
@@ -1789,7 +1789,7 @@ const jsonSchemaToTsInterface = (jsonSchema, typeName) => {
       delete schema.title;
     }
     if (schema.pattern) {
-      schema.description += `@pattern ${schema.pattern}
+      schema.description += `@pattern /${schema.pattern}/
 `;
       delete schema.pattern;
     }

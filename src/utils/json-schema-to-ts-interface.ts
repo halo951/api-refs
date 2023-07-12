@@ -56,7 +56,7 @@ export const jsonSchemaToTsInterface = (jsonSchema: JSONSchema7, typeName: strin
         }
 
         if (schema.pattern) {
-            schema.description += `@pattern ${schema.pattern}\n`
+            schema.description += `@pattern /${schema.pattern}/\n`
             delete schema.pattern
         }
 
