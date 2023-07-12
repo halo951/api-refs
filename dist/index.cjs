@@ -1,11 +1,11 @@
 // @ts-nocheck
 /**
-* api-refs@1.0.0-alpha.7
+* api-refs@1.0.0-alpha.8
 *
 * Copyright (c) 2023 halo951 <https://github.com/halo951>
 * Released under MIT License
 *
-* @build Tue Jul 11 2023 14:47:30 GMT+0800 (中国标准时间)
+* @build Wed Jul 12 2023 11:55:33 GMT+0800 (中国标准时间)
 * @author halo951(https://github.com/halo951)
 * @license MIT
 */
@@ -66,7 +66,7 @@ const typescript__default = /*#__PURE__*/_interopDefaultCompat(typescript);
 const parser__default = /*#__PURE__*/_interopDefaultCompat(parser);
 
 const name = "api-refs";
-const version = "1.0.0-alpha.7";
+const version = "1.0.0-alpha.8";
 const type$1 = "module";
 const description$1 = "这是一个能够显著提高前端接口管理效率的工具。基于 apifox 的 JSONSchema 规范, 生成前端项目使用的接口调用文件.";
 const keywords = [
@@ -1819,6 +1819,11 @@ const jsonSchemaToTsInterface = (jsonSchema, typeName) => {
       schema.description += `@name ${schema.title}
 `;
       delete schema.title;
+    }
+    if (schema.pattern) {
+      schema.description += `@pattern ${schema.pattern}
+`;
+      delete schema.pattern;
     }
     if (schema.default) {
       schema.description += `@default ${schema.default}
