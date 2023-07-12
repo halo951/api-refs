@@ -1,8 +1,4 @@
 {
-    "ts-node": {
-        "esm": true,
-        "emit": true,
-    },
     "compilerOptions": {
         /** libs */
         "importHelpers": true,
