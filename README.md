@@ -72,7 +72,7 @@ yarn api:ref ir
 
 > [TIPS] 为了照顾大多数的使用场景的使用体验, 小部分兼容性配置需要手工设置, 具体可参考接口参数
 
--   [interface](./dist/typings/intf/IConfig.d.ts)
+-   [interface](./src/intf/IConfig.ts)
 -   [schema](./api-refs.config.json)
 
 ## FAQ
