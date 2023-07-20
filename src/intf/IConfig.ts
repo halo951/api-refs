@@ -81,6 +81,13 @@ export interface IConfig {
          * @default false
          */
         cjs?: boolean
+
+        /**
+         * 自定义响应类型(接口) 模板
+         * 
+         * @default Promise<{intf}>
+         */
+        resultTypeFormatter?: string
     }
 
     /**

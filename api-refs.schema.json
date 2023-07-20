@@ -36,7 +36,12 @@
                     "default": "import request from '@/utils/request'",
                     "type": "string"
                 },
-                "cjs": { "description": "是否导出 commonjs 格式文件", "default": false, "type": "boolean" }
+                "cjs": { "description": "是否导出 commonjs 格式文件", "default": false, "type": "boolean" },
+                "resultTypeFormatter": {
+                    "description": "自定义响应类型(接口) 模板",
+                    "default": "Promise<{intf}>",
+                    "type": "string"
+                }
             },
             "additionalProperties": false
         },

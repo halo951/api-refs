@@ -268,7 +268,8 @@ const createFunctionCode = (
     requestUtil: string,
     paramsRefs: Array<{ key: string; intf: string }>,
     responseRef: Array<string>,
-    defaultContentType: string
+    defaultContentType: string,
+    resultTypeFormatter: string
 ): string => {
     // @ 判断是否需要注入当前方法的 content-type
     const customContentType: string | undefined =
@@ -278,7 +279,7 @@ const createFunctionCode = (
     // @ 生成方法参数引用
     const { paramsRefCode, deconstructExpression } = transformFunctionParamsRefCode(paramsRefs)
     // @ 生成返回值引用
-    const resultRefCode: string = `Promise<${responseRef.join(' | ')}>`
+    const resultRefCode: string = resultTypeFormatter.replace(/\{intf\}/, responseRef.join(' | '))
     // @ 生成方法前置代码
     const prefixCode: Array<string> = [
         deconstructExpression,
@@ -334,7 +335,8 @@ export const createRequestArrowFunction = async (opt: {
         requestUtil,
         paramsRefs,
         responseRef,
-        defaultContentType
+        defaultContentType,
+        config.output?.resultTypeFormatter ?? 'Promise<{intf}>'
     )
     // > 拼接 & 返回
     return [...paramsIntfCode, ...responseIntfCode, functionCode].filter((line) => line && line !== '').join('\n')
