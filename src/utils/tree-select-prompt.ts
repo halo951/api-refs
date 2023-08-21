@@ -1,6 +1,7 @@
 import chalk from 'chalk'
-import boxen from 'boxen'
 import Enquirer from 'enquirer-esm'
+
+import { box } from './box'
 
 interface ITree<T> {
     /** 原始数据 */
@@ -305,7 +306,7 @@ export class TreeSelectPrompt<
         let prompt = ''
         let header = await this.header()
         if (header?.length) {
-            header = chalk.hex('#11998e')(boxen(header, { borderStyle: 'round', padding: 1, margin: 1 }))
+            header = box(header, { color: '#11998e' })
         }
 
         let prefix = await this.prefix()

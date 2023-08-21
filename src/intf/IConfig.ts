@@ -84,10 +84,17 @@ export interface IConfig {
 
         /**
          * 自定义响应类型(接口) 模板
-         * 
+         *
          * @default Promise<{intf}>
          */
         resultTypeFormatter?: string
+
+        /**
+         * 生成时过滤公共参数
+         *
+         * @default []
+         */
+        filterGlobalParams?: Array<string>
     }
 
     /**

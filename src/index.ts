@@ -48,7 +48,6 @@ program
     .action(async ({ reset, config: customConfigPath }) => {
         configFilePath = customConfigPath ?? DEFAULT_CONFIG_FILE_NAME
         const hasConfigFile: boolean = fs.existsSync(configFilePath)
-
         // ? 如果未检索到配置文件, 且用户拒绝创建配置文件, 则中止应用并退出
         if (!hasConfigFile) {
             const isCreate: boolean = await inputBoolean('缺少配置文件是否创建', true)

@@ -30,11 +30,13 @@ const appendComment = (schema: JSONSchema7, comment: Array<string | [string, str
  * 创建参数接口
  * @param api 接口
  * @param functionName 方法名
+ * @param filterGlobalParams 需要过滤的公共参数名集合
  * @returns
  */
 const createFunctionParamsIntf = async (
     api: IApi,
-    functionName: string
+    functionName: string,
+    filterGlobalParams: Array<string>
 ): Promise<{ code: Array<string>; refs: Array<{ key: string; intf: string }> }> => {
     // 生成的代码
     const code: Array<string> = []
@@ -51,7 +53,7 @@ const createFunctionParamsIntf = async (
                 api.pathParams ? ['description', '存在 url path params'] : undefined
             ])
             const intf: string = createIntfName(functionName, 'params')
-            const params: string = await jsonSchemaToTsInterface(api.requestObject.params, intf)
+            const params: string = await jsonSchemaToTsInterface(api.requestObject.params, intf, filterGlobalParams)
             code.push(params)
             refs.push({ key: 'params', intf })
         } catch (error) {
@@ -67,7 +69,7 @@ const createFunctionParamsIntf = async (
                 ['ContentType', api.requestObject.body.type]
             ])
             const intf: string = createIntfName(functionName, 'data')
-            const data: string = await jsonSchemaToTsInterface(api.requestObject.body.data, intf)
+            const data: string = await jsonSchemaToTsInterface(api.requestObject.body.data, intf, filterGlobalParams)
             code.push(data)
             refs.push({ key: 'data', intf })
         } catch (error) {
@@ -82,7 +84,7 @@ const createFunctionParamsIntf = async (
                 ['function', functionName]
             ])
             const intf: string = createIntfName(functionName, 'header')
-            const headers: string = await jsonSchemaToTsInterface(api.requestObject.header, intf)
+            const headers: string = await jsonSchemaToTsInterface(api.requestObject.header, intf, [])
             code.push(headers)
             refs.push({ key: 'headers', intf })
         } catch (error) {
@@ -98,7 +100,7 @@ const createFunctionParamsIntf = async (
                 ['function', functionName]
             ])
             const intf: string = createIntfName(functionName, 'cookie')
-            const cookie: string = await jsonSchemaToTsInterface(api.requestObject.cookie, intf)
+            const cookie: string = await jsonSchemaToTsInterface(api.requestObject.cookie, intf, [])
             code.push(cookie)
             refs.push({ key: 'cookie', intf })
         } catch (error) {
@@ -145,7 +147,7 @@ const createFunctionResponseInterface = async (
                 ['responseType', type]
             ])
             const intf: string = createIntfName(functionName, 'response', n)
-            const response = await jsonSchemaToTsInterface(data, intf)
+            const response = await jsonSchemaToTsInterface(data, intf, [])
             code.push(response)
             refs.push(intf)
         } catch (error) {
@@ -320,8 +322,14 @@ export const createRequestArrowFunction = async (opt: {
     config: IConfig
 }): Promise<string> => {
     const { functionName, requestUtil, api, config, defaultContentType } = opt
+    /** 公共参数集合 */
+    const filterGlobalParams: Array<string> = config.output?.filterGlobalParams ?? []
     // @ 生成方法参数接口
-    const { code: paramsIntfCode, refs: paramsRefs } = await createFunctionParamsIntf(api, functionName)
+    const { code: paramsIntfCode, refs: paramsRefs } = await createFunctionParamsIntf(
+        api,
+        functionName,
+        filterGlobalParams
+    )
     // @ 生成方法响应接口
     const { code: responseIntfCode, refs: responseRef } = await createFunctionResponseInterface(
         api,

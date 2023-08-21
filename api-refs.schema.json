@@ -41,6 +41,12 @@
                     "description": "自定义响应类型(接口) 模板",
                     "default": "Promise<{intf}>",
                     "type": "string"
+                },
+                "filterGlobalParams": {
+                    "description": "生成时过滤公共参数",
+                    "default": [],
+                    "type": "array",
+                    "items": { "type": "string" }
                 }
             },
             "additionalProperties": false

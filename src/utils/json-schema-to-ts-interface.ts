@@ -17,7 +17,12 @@ const JSONSchemaGenerateOptions: Partial<JSONSchemaToTypescriptOptions> = {
     style: prettierConfig
 }
 
-const deepFix = (jsonSchema: JSONSchema7, transform: (schema: JSONSchema7) => void): void => {
+/**
+ * 深度转换 jsonschema 属性
+ * @param jsonSchema
+ * @param transform
+ */
+const deepTransformJSONSchema = (jsonSchema: JSONSchema7, transform: (schema: JSONSchema7) => void): void => {
     const deep = (schema?: JSONSchema7 | JSONSchema7Definition) => {
         if (!schema || typeof schema === 'boolean') return
         transform(schema)
@@ -41,15 +46,66 @@ const deepFix = (jsonSchema: JSONSchema7, transform: (schema: JSONSchema7) => vo
     deep(jsonSchema)
 }
 
-/** 将 jsonSchema 转化成 接口代码 */
-export const jsonSchemaToTsInterface = (jsonSchema: JSONSchema7, typeName: string): Promise<string> => {
-    // Tips: 删除 schema 中的 title 属性, 处理 `json-schema-to-typescript` 生成时, 解析类型出错问题
-    deepFix(jsonSchema, (schema: JSONSchema7): void => {
+/** 根据配置字段, 过滤 JSONSchema 中的属性 */
+const filterJSONSchemaProperties = (jsonSchema: JSONSchema7, filter: (key: string) => boolean): void => {
+    const deep = (schema: JSONSchema7 | JSONSchema7Definition, parent: Array<string>) => {
+        if (!schema || typeof schema === 'boolean') return
+
+        let node: Array<string>
+        let n: number = 0
+        // deep
+        switch (schema.type) {
+            case 'object':
+                for (const key in schema.properties) {
+                    const property = schema.properties[key]
+                    node = [...parent, key]
+                    if (filter(node.join('.'))) {
+                        delete schema.properties[key]
+                    } else {
+                        deep(property, node)
+                    }
+                }
+                break
+            case 'array':
+                for (const item of schema.items instanceof Array ? schema.items : [schema.items]) {
+                    node = [...parent, `[${n}]`]
+                    if (filter(node.join(','))) {
+                        delete schema.items[n]
+                    } else {
+                        deep(item, node)
+                    }
+                    n++
+                }
+                break
+            default:
+                break
+        }
+    }
+    deep(jsonSchema, [])
+}
+
+/**
+ * 将 jsonSchema 转化成 接口代码
+ * @param jsonSchema
+ * @param typeName 接口名
+ * @param filterProperties 需要过滤的属性集合
+ * @returns
+ */
+export const jsonSchemaToTsInterface = (
+    jsonSchema: JSONSchema7,
+    typeName: string,
+    filterProperties: Array<string>
+): Promise<string> => {
+    // json schema 属性过滤
+    filterJSONSchemaProperties(jsonSchema, (key: string) => filterProperties.includes(key))
+    // json schema 数据格式转化
+    deepTransformJSONSchema(jsonSchema, (schema: JSONSchema7): void => {
         if (!!schema.description) {
             schema.description += `\n\n`
         } else {
             schema.description = ''
         }
+        // Tips: 删除 schema 中的 title 属性, 处理 `json-schema-to-typescript` 生成时, 解析类型出错问题
         if (schema.title) {
             schema.description += `@name ${schema.title}\n`
             delete schema.title

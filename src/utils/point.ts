@@ -1,5 +1,5 @@
 import chalk from 'chalk'
-import boxen from 'boxen'
+import { box } from './box'
 
 export const point = {
     step(msg: string) {
@@ -9,8 +9,7 @@ export const point = {
         console.log(chalk.greenBright(chalk.bold('⚙ '), msg))
     },
     header(msg: string) {
-        msg = chalk.hex('#11998e')(boxen(msg, { borderStyle: 'round', padding: 1, margin: 1 }))
-        console.log(msg)
+        console.log(box(msg, { color: '#11998e' }))
     },
     total(msg: string) {
         console.log(chalk.white('🚥', msg))
