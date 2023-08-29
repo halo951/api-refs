@@ -8,8 +8,6 @@ import get from 'get-value'
 import prettier from 'prettier'
 import * as glob from 'glob'
 import Ajv, { DefinedError } from 'ajv'
-
-import pkg from '../../package.json' assert { type: 'json' }
 import schema from '../../api-refs.schema.json' assert { type: 'json' }
 
 import { parset as apifox } from './apifox'
@@ -17,10 +15,15 @@ import { point } from '../utils/point'
 import { isUndefined } from '../utils/is'
 import { inputBoolean, inputSelect, inputText } from '../utils/forms'
 import { upgrade } from './upgrade'
+import { findPackagePath } from '../utils/read-dependency-pkg'
+import { fileURLToPath } from 'node:url'
 
 const parsets: { [key: string]: (config: IConfig) => Promise<Array<IApi>> } = {
     apifox
 }
+const pkgPath: string = findPackagePath(fileURLToPath(import.meta.url)).next().filename
+
+const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'))
 
 /** 获取初始化配置 */
 const initialConfig = (): IConfig => {
