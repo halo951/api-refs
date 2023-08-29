@@ -1,6 +1,6 @@
 {
     "name": "api-refs",
-    "version": "1.0.1",
+    "version": "1.0.4",
     "type": "module",
     "description": "这是一个能够显著提高前端接口管理效率的工具。基于 apifox 的 JSONSchema 规范, 生成前端项目使用的接口调用文件.",
     "keywords": [
