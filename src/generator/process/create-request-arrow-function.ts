@@ -5,6 +5,9 @@ import type { IConfig } from '../../intf/IConfig'
 import { pascalCase } from 'change-case'
 import { jsonSchemaToTsInterface } from '../../utils/json-schema-to-ts-interface'
 
+/** 转换多行格式的注释 */
+const transformMultiRowComment = (comment: string): string => comment.replace(/\n/g, '\n *  ')
+
 /** 创建接口名 */
 const createIntfName = (functionName: string, intfType: string, index: number = 0): string => {
     return `I${pascalCase(functionName)}${pascalCase(intfType)}${index > 0 ? index : ''}`
@@ -15,8 +18,8 @@ const createComment = (comment: Array<string | [string, string]>): string => {
     let description: Array<string> = []
     for (const c of comment) {
         if (c === undefined) continue
-        if (typeof c === 'string') description.push(c)
-        else description.push(`@${c[0]} ${c[1]}`)
+        if (typeof c === 'string') description.push(transformMultiRowComment(c))
+        else description.push(`@${c[0]} ${transformMultiRowComment(c[1])}`)
     }
     return description.join('\n')
 }
@@ -195,9 +198,13 @@ const createFunctionComment = (api: IApi): string => {
         ['author', authors]
     ]
         .filter((c) => !(c instanceof Array) || (!!c[1] && c[1] !== ''))
-        .map((c) => ` * ${c instanceof Array ? `@${c[0]} ${c[1]}` : c}`)
+        .map(
+            (c) =>
+                ` * ${c instanceof Array ? `@${c[0]} ${transformMultiRowComment(c[1])}` : transformMultiRowComment(c)}`
+        )
         .join('\n')
     functionComment = `/** \n${functionComment}\n */`
+    console.log(functionComment)
     return functionComment
 }
 
