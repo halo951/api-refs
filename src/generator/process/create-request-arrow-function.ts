@@ -204,7 +204,6 @@ const createFunctionComment = (api: IApi): string => {
         )
         .join('\n')
     functionComment = `/** \n${functionComment}\n */`
-    console.log(functionComment)
     return functionComment
 }
 
