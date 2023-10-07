@@ -22,6 +22,8 @@ const cookieToHeaderValue = (cookies: { [key: string]: any }): string => {
         .join('; ')
 }
 `
+/** AxiosPromise 接口导入代码 (当 `resultTypeFormatter` 配置使用默认配置时生效) */
+const AXIOS_PROMISE_IMPORT_CODE: string = `import type { AxiosPromise } from 'axios'`
 
 /** 生成 */
 export const generate = async (apis: Array<IApi>, config: IConfig): Promise<void> => {
@@ -52,7 +54,12 @@ export const generate = async (apis: Array<IApi>, config: IConfig): Promise<void
         const content: Array<string> = []
 
         // 写入导入语句
-        content.push(importStatement)
+        // Tips: 考虑到生成格式这么改~
+        if (!config.output?.resultTypeFormatter || config.output.resultTypeFormatter.includes('AxiosPromise')) {
+            content.push(AXIOS_PROMISE_IMPORT_CODE + '\n' + importStatement)
+        } else {
+            content.push(importStatement)
+        }
         content.push(``)
 
         // 写入文件头注释

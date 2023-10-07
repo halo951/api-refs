@@ -350,7 +350,7 @@ export const createRequestArrowFunction = async (opt: {
         paramsRefs,
         responseRef,
         defaultContentType,
-        config.output?.resultTypeFormatter ?? 'Promise<{intf}>'
+        config.output?.resultTypeFormatter ?? 'AxiosPromise<{intf}>'
     )
     // > 拼接 & 返回
     return [...paramsIntfCode, ...responseIntfCode, functionCode].filter((line) => line && line !== '').join('\n')

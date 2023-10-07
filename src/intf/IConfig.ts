@@ -85,7 +85,7 @@ export interface IConfig {
         /**
          * 自定义响应类型(接口) 模板
          *
-         * @default Promise<{intf}>
+         * @default AxiosPromise<{intf}>
          */
         resultTypeFormatter?: string
 
