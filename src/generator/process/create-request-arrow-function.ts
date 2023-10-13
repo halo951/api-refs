@@ -296,7 +296,8 @@ const createFunctionCode = (
     ]
         // filter null value
         .filter((c) => !!c)
-    if (customContentType && !paramsRefs.some((ref) => ref.key === 'headers')) {
+
+    if (parseHeader(paramsRefs, customContentType) && !paramsRefs.some((ref) => ref.key === 'headers')) {
         paramsRefs.push({ key: 'headers', intf: `{ key: string }: any` })
     }
     // @ 生成方法请求参数
