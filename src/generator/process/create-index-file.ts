@@ -2,6 +2,7 @@ import type { IApi } from '../../intf/IApi'
 import type { IConfig } from '../../intf/IConfig'
 
 import np from 'node:path/posix'
+import { camelCase } from 'change-case'
 
 /** 创建 index file */
 export const createIndexFile = (
@@ -21,7 +22,7 @@ export const createIndexFile = (
                 for (const proj of projects ?? []) set.add(proj)
                 return set
             }, new Set())
-        importStatements.push(`import * as ${map} from './${map}'`)
+        importStatements.push(`import * as ${camelCase(map)} from './${map}'`)
         outputStatements.push(`  /**`)
         outputStatements.push(`   * <文件夹> ${name}`)
         outputStatements.push(`   * @total (接口数) ${group.length}`)
@@ -30,7 +31,7 @@ export const createIndexFile = (
             outputStatements.push(`   *   - ${proj}`)
         }
         outputStatements.push(`   */`)
-        outputStatements.push(`  ${map},`)
+        outputStatements.push(`  ${camelCase(map)},`)
     }
     outputStatements.push('}')
     // 生成导出及注释
