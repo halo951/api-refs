@@ -93,7 +93,13 @@
                     "type": "array",
                     "items": { "$ref": "#/definitions/IApifoxUsage" }
                 },
-                "removeDeprecatedApi": { "description": "是否移除已废弃的 api", "default": true, "type": "boolean" }
+                "removeDeprecatedApi": { "description": "是否移除已废弃的 api", "default": true, "type": "boolean" },
+                "removeApiByTag": {
+                    "description": "通过不同标签来移除api (用来处理相同api在apifox中, 记录不同参数问题)",
+                    "default": [],
+                    "type": "array",
+                    "items": { "type": "string" }
+                }
             },
             "additionalProperties": false
         },

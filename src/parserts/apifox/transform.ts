@@ -224,9 +224,9 @@ const transformToIApi = (opts: {
     used: IConfig['apifox']['usage'][0]
     apis: Array<IUsedApiDetail>
     output: IConfig['output']
-    removeDeprecatedApi: boolean
+    needRemoveApiByTag: Array<string>
 }): Array<IApi> => {
-    const { projectId, projectName, project, used, apis, output, removeDeprecatedApi } = opts
+    const { projectId, projectName, project, used, apis, output, needRemoveApiByTag } = opts
     const { details, schemas, projectMembers } = project
     const { dir, responseOnlySuccess, language } = output
     const out: Array<IApi> = []
@@ -256,8 +256,8 @@ const transformToIApi = (opts: {
         const id: number = Number(api.node.key.split('.')[1])
         const detail: IDetail = details.find((d) => d.id === id)
 
-        // ? 如果 api 已标记废弃 或即将废弃, 那么跳过生成
-        if (removeDeprecatedApi && ['deprecated', 'obsolete'].includes(detail.status)) {
+        // ? 移除指定标记的api接口
+        if (needRemoveApiByTag.includes(detail.status)) {
             continue
         }
 
@@ -322,6 +322,9 @@ export const transform = (
         const projectName: string = projects.find((p) => Number(p.id) === Number(projectId))?.name
         const usage = config.apifox?.usage ?? []
         const removeDeprecatedApi: boolean = config.apifox.removeDeprecatedApi !== false
+        const needRemoveApiByTag: Array<string> = [...config.apifox.removeApiByTag].concat(
+            removeDeprecatedApi ? ['deprecated', 'obsolete'] : []
+        )
         for (const used of usage) {
             const otherUsed = usage.filter((u) => u !== used)
             const apis: Array<IUsedApiDetail> = filterUsedApi(project.treeList, used, otherUsed)
@@ -333,7 +336,7 @@ export const transform = (
                     used,
                     apis,
                     output: config.output,
-                    removeDeprecatedApi
+                    needRemoveApiByTag
                 })
             )
         }

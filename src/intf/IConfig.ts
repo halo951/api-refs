@@ -155,6 +155,12 @@ interface IApifoxDatasource {
      * @default true
      */
     removeDeprecatedApi?: boolean
+
+    /**
+     * @description 通过不同标签来移除api (用来处理相同api在apifox中, 记录不同参数问题)
+     * @default []
+     */
+    removeApiByTag?: Array<string>
 }
 
 export type TDatasource = 'apifox'
