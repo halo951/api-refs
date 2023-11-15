@@ -322,7 +322,7 @@ export const transform = (
         const projectName: string = projects.find((p) => Number(p.id) === Number(projectId))?.name
         const usage = config.apifox?.usage ?? []
         const removeDeprecatedApi: boolean = config.apifox.removeDeprecatedApi !== false
-        const needRemoveApiByTag: Array<string> = [...config.apifox.removeApiByTag].concat(
+        const needRemoveApiByTag: Array<string> = [...(config.apifox.removeApiByTag ?? [])].concat(
             removeDeprecatedApi ? ['deprecated', 'obsolete'] : []
         )
         for (const used of usage) {
