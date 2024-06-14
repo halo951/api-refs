@@ -1,6 +1,7 @@
 import type { IApi } from '../../intf/IApi'
 import type { JSONSchema7 } from 'json-schema'
 import type { IConfig } from '../../intf/IConfig'
+import type { ResponseType } from 'axios'
 
 import { pascalCase } from 'change-case'
 import { jsonSchemaToTsInterface } from '../../utils/json-schema-to-ts-interface'
@@ -253,19 +254,17 @@ const parsePathParams = (api: IApi): string | undefined => {
 }
 
 /** 解析请求参数 */
-const parseRequestOptions = (api: IApi, paramsRefs: Array<{ key: string; intf: string }>): Array<string> => {
+const parseRequestOptions = (
+    requestOptionsRefs: Array<{ key: string; intf?: string; value?: string }>
+): Array<string> => {
     const options: Array<string> = []
-    if (api.method) options.push(`method: '${api.method.toUpperCase()}'`)
-    if (api.url) {
-        if (api.pathParams) {
-            options.push(`url: \`${api.url}\``)
-        } else {
-            options.push(`url: '${api.url}'`)
+    for (const ref of requestOptionsRefs) {
+        if (ref.intf) {
+            options.push(ref.key)
         }
-    }
-    for (const { key } of paramsRefs) {
-        if (key === 'cookie') continue
-        options.push(key)
+        if (ref.value) {
+            options.push(`${ref.key}: ${ref.value}`)
+        }
     }
     return options
 }
@@ -287,7 +286,10 @@ const createFunctionCode = (
     // @ 生成方法参数引用
     const { paramsRefCode, deconstructExpression } = transformFunctionParamsRefCode(paramsRefs)
     // @ 生成返回值引用
-    const resultRefCode: string = resultTypeFormatter.replace(/\{intf\}/, responseRef.join(' | '))
+    const resultRefCode: string = resultTypeFormatter.replace(
+        /\{intf\}/,
+        responseRef.length ? responseRef.join(' | ') : 'unknown'
+    )
     // @ 生成方法前置代码
     const prefixCode: Array<string> = [
         deconstructExpression,
@@ -297,11 +299,47 @@ const createFunctionCode = (
         // filter null value
         .filter((c) => !!c)
 
+    // ? 如果方法内添加了自定义header, 则添加自定义方法参数.
     if (parseHeader(paramsRefs, customContentType) && !paramsRefs.some((ref) => ref.key === 'headers')) {
         paramsRefs.push({ key: 'headers', intf: `{ key: string }: any` })
     }
+
+    // TODO 临时性质逻辑, 扩展对不同响应值类型的支持
+    let requestOptionsRefs: Array<{ key: string; intf: string } | { key: string; value: string }> = []
+    if (api.method) {
+        requestOptionsRefs.push({ key: 'method', value: `'${api.method.toUpperCase()}'` })
+    }
+    if (api.url) {
+        requestOptionsRefs.push({ key: 'url', value: api.pathParams ? `\`${api.url}\`` : `'${api.url}'` })
+    }
+    // Tips: 2024年6月14日 15:21:30 新增, 增加对不同响应值结构的支持
+    if (api.responseObject.length > 0) {
+        let responseType!: ResponseType | undefined
+        const map: Record<IApi['responseObject'][0]['type'], ResponseType | undefined> = {
+            json: undefined,
+            msgPack: undefined,
+            xml: 'document',
+            html: 'document',
+            raw: 'text',
+            binary: 'stream',
+            eventStream: 'stream'
+        }
+        for (const response of api.responseObject) {
+            if (responseType && response.type !== responseType) {
+                throw new Error('转换 responseType 失败, 请保证同一接口的responseType是相同的')
+            }
+            responseType = map[response.type]
+        }
+        if (responseType) {
+            requestOptionsRefs.push({ key: 'responseType', value: `'${responseType}'` })
+        }
+    }
+
+    // > 过滤 params.cookie, 并合并请求 params
+    requestOptionsRefs = requestOptionsRefs.concat(paramsRefs.filter((ref) => ref.key !== 'cookie'))
+
     // @ 生成方法请求参数
-    const requestOptionsCode: Array<string> = parseRequestOptions(api, paramsRefs)
+    const requestOptionsCode: Array<string> = parseRequestOptions(requestOptionsRefs)
 
     // @ 生成方法返回值引用
     const functionCode: string = `

@@ -104,6 +104,8 @@ export interface IApi {
             | 'raw' // 文本格式
             | 'html' // html 格式
             | 'binary' // 文件类型
+            | 'msgPack' // application/x-msgpack
+            | 'eventStream' // sse | text/event-stream | 服务端推送的响应流结构
         /** 响应数据结构 */
         data?: JSONSchema7
     }>
