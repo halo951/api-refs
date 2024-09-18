@@ -30,10 +30,8 @@
     "scripts": {
         "clean": "rimraf dist && rimraf typings",
         "build": "unbuild",
-        "preview": "unbuild && node ./dist/index.mjs",
-        "format": "prettier -w **.ts **.md **.json",
-        "ref": "yarn unlink && yarn link",
-        "api-refs": "api-refs"
+        "preview": "tsx ./src/index.ts",
+        "format": "prettier -w **.ts **.md **.json"
     },
     "license": "MIT",
     "packageManager": "yarn@1.22.19",
@@ -87,6 +85,7 @@
         "rimraf": "3.0.2",
         "rollup-plugin-typescript2": "0.35.0",
         "tslib": "2.5.2",
+        "tsx": "^4.19.1",
         "typescript-json-schema": "0.58.1",
         "unbuild": "1.2.1"
     }

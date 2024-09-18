@@ -158,7 +158,7 @@ const transformRequestObject = (
             case 'application/x-www-form-urlencoded':
                 requestObject.body = {
                     type: detail.requestBody.type,
-                    data: parametersToJSONSchema7(detail.requestBody.parameters)
+                    data: parametersToJSONSchema7(detail.requestBody.parameters, { skipNullExample: true })
                 }
                 break
             case 'application/json':

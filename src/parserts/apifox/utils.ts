@@ -15,7 +15,16 @@ export const mergeArray = <T>(origin: Array<Array<T>>, isDeduped: (a: T, b: T) =
 }
 
 /** 将 参数格式转化成 JSONSchema7 格式 */
-export const parametersToJSONSchema7 = (params: Array<Omit<IParameters, 'id' | 'enable'>>): JSONSchema7 | undefined => {
+export const parametersToJSONSchema7 = (
+    params: Array<Omit<IParameters, 'id' | 'enable'>>,
+    options: {
+        /** 是否跳过空示例值
+         *
+         * @description apifox 的 application/x-www-form-urlencoded 表单数据结构, 默认会给出来一个空的 example 属性, 此时会导致后续的生成出错. 需要通过变量控制保持同步
+         */
+        skipNullExample?: boolean
+    } = {}
+): JSONSchema7 | undefined => {
     const schema: JSONSchema7 = {
         type: 'object',
         properties: {},
@@ -26,7 +35,7 @@ export const parametersToJSONSchema7 = (params: Array<Omit<IParameters, 'id' | '
         schema.properties[name] = {
             type: type,
             description: description,
-            default: example
+            default: options.skipNullExample && example === '' ? undefined : example
         }
         if (required) {
             schema.required.push(name)
