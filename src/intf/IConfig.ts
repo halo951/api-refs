@@ -95,6 +95,14 @@ export interface IConfig {
          * @default []
          */
         filterGlobalParams?: Array<string>
+
+        /**
+         * 是否忽略 header 参数
+         *
+         * @version 1.1.8 新增
+         * @default false
+         */
+        ignoreHeader?: boolean
     }
 
     /**

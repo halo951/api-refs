@@ -47,7 +47,8 @@
                     "default": [],
                     "type": "array",
                     "items": { "type": "string" }
-                }
+                },
+                "ignoreHeader": { "description": "是否忽略 header 参数", "default": false, "type": "boolean" }
             },
             "additionalProperties": false
         },

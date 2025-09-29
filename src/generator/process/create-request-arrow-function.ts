@@ -40,7 +40,8 @@ const appendComment = (schema: JSONSchema7, comment: Array<string | [string, str
 const createFunctionParamsIntf = async (
     api: IApi,
     functionName: string,
-    filterGlobalParams: Array<string>
+    filterGlobalParams: Array<string>,
+    config: IConfig
 ): Promise<{ code: Array<string>; refs: Array<{ key: string; intf: string }> }> => {
     // 生成的代码
     const code: Array<string> = []
@@ -80,7 +81,7 @@ const createFunctionParamsIntf = async (
             capture.push('body')
         }
     }
-    if (api.requestObject.header) {
+    if (api.requestObject.header && !config.output.ignoreHeader) {
         try {
             appendComment(api.requestObject.header, [
                 `request header | ${api.comment.name}`,
@@ -373,7 +374,8 @@ export const createRequestArrowFunction = async (opt: {
     const { code: paramsIntfCode, refs: paramsRefs } = await createFunctionParamsIntf(
         api,
         functionName,
-        filterGlobalParams
+        filterGlobalParams,
+        config
     )
     // @ 生成方法响应接口
     const { code: responseIntfCode, refs: responseRef } = await createFunctionResponseInterface(
