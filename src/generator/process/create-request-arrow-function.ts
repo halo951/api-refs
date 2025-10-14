@@ -81,7 +81,10 @@ const createFunctionParamsIntf = async (
             capture.push('body')
         }
     }
-    if (api.requestObject.header && !config.output.ignoreHeader) {
+    const hasHeaders =
+        Object.keys(api.requestObject.header ?? {}).filter((key) => filterGlobalParams.some((gp) => gp === key))
+            .length > 0
+    if (hasHeaders && !config.output.ignoreHeader) {
         try {
             appendComment(api.requestObject.header, [
                 `request header | ${api.comment.name}`,
@@ -89,7 +92,7 @@ const createFunctionParamsIntf = async (
                 ['function', functionName]
             ])
             const intf: string = createIntfName(functionName, 'header')
-            const headers: string = await jsonSchemaToTsInterface(api.requestObject.header, intf, [])
+            const headers: string = await jsonSchemaToTsInterface(api.requestObject.header, intf, filterGlobalParams)
             code.push(headers)
             refs.push({ key: 'headers', intf })
         } catch (error) {
