@@ -82,7 +82,7 @@ const createFunctionParamsIntf = async (
         }
     }
     const hasHeaders =
-        Object.keys(api.requestObject.header ?? {}).filter((key) => filterGlobalParams.some((gp) => gp === key))
+        Object.keys(api.requestObject.header ?? {}).filter((key) => !filterGlobalParams.some((gp) => gp === key))
             .length > 0
     if (hasHeaders && !config.output.ignoreHeader) {
         try {
