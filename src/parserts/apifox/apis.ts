@@ -77,7 +77,7 @@ export const apis = {
     /** 加载项目文件夹、接口结构树 */
     async apiTreeList(token: string, projectId: number): Promise<AxiosResponse<any>> {
         return request({
-            url: '/api/v1/api-tree-list',
+            url: `/api/v1/projects/${projectId}/api-tree-list?locale=zh-CN`,
             headers: { Authorization: token, 'X-Project-Id': projectId }
         })
     },
